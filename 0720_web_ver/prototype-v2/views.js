@@ -93,6 +93,13 @@
     const process = project.process;
     const categoryLabel = window.PORTFOLIO_DATA.categories
       .find(({ id }) => id === project.category)?.label || project.category;
+    const hasHomeState = Boolean(
+      sessionStorage.getItem(window.PortfolioState.STORAGE_KEY),
+    );
+    const backRoute = hasHomeState
+      ? window.PortfolioRouter.toHash({ name: "home", category: project.category })
+      : window.PortfolioRouter.toHash({ name: "works" });
+    const backLabel = hasHomeState ? "BACK TO CATEGORY" : "BACK TO WORKS";
 
     return `<article
       class="case-view case-view--${escapeHTML(project.category)}"
@@ -102,10 +109,10 @@
       data-detail-mode="${escapeHTML(project.detailMode)}"
     >
       <header class="case-nav">
-        <a class="case-nav__identity" href="#/" data-close-case>LEE JIHYE WORKS</a>
+        <a class="case-nav__identity" href="${escapeHTML(backRoute)}" data-close-case>LEE JIHYE WORKS</a>
         <span class="case-nav__context">${escapeHTML(categoryLabel)} / ${String(index + 1).padStart(2, "0")}</span>
         <a href="#/works">ALL WORKS</a>
-        <a class="case-nav__close" href="#/" data-close-case aria-label="Close project">
+        <a class="case-nav__close" href="${escapeHTML(backRoute)}" data-close-case aria-label="Close project">
           <span aria-hidden="true">×</span>
         </a>
       </header>
@@ -176,8 +183,8 @@
         <a href="${escapeHTML(entryRoute(previous))}">
           <span>PREVIOUS</span><strong>← ${escapeHTML(window.PORTFOLIO_DATA.projects[previous.slug].title)}</strong>
         </a>
-        <a href="${escapeHTML(window.PortfolioRouter.toHash({ name: "home", category: project.category }))}" data-back-category>
-          BACK TO ${escapeHTML(categoryLabel)}
+        <a href="${escapeHTML(backRoute)}" data-back-category>
+          ${escapeHTML(backLabel)}
         </a>
         <a href="${escapeHTML(entryRoute(next))}">
           <span>NEXT</span><strong>${escapeHTML(window.PORTFOLIO_DATA.projects[next.slug].title)} →</strong>

@@ -313,3 +313,110 @@ test("an invalid project chapter renders a truthful not-found state", async () =
     assert.equal(await page.locator("[data-chapter]").count(), 0);
   });
 });
+
+test("closing a case restores category, selected row, focus, and scroll", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.locator('[data-panel="space"]').hover();
+    await page.waitForTimeout(1100);
+
+    const row = page.locator('[data-project-row][data-slug="lenovo-smart-home"]');
+    await row.focus();
+    await page.evaluate(() => {
+      document.body.style.minHeight = "1600px";
+      window.scrollTo(0, 180);
+      document.querySelector('[data-project-row][data-slug="lenovo-smart-home"]').click();
+    });
+    await page.waitForSelector('.case-view[data-project="lenovo-smart-home"]');
+    await page.locator("[data-close-case]").last().click();
+    await page.waitForSelector(".hero:not([hidden])");
+    await page.waitForFunction(() => (
+      document.activeElement?.dataset.slug === "lenovo-smart-home"
+      && window.scrollY === 180
+    ));
+
+    assert.equal(
+      await page.locator('[data-panel="space"] [data-panel-trigger]').getAttribute("aria-expanded"),
+      "true",
+    );
+    assert.equal(
+      await page.locator('[data-panel="space"] [data-project-row].is-selected').getAttribute("data-slug"),
+      "lenovo-smart-home",
+    );
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.slug), "lenovo-smart-home");
+    assert.equal(await page.evaluate(() => window.scrollY), 180);
+  });
+});
+
+test("browser Back restores the same Home quick-scan state", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.locator('[data-panel="branding"]').hover();
+    await page.waitForTimeout(1100);
+    const row = page.locator('[data-project-row][data-slug="benzhi-life"]');
+    await row.focus();
+    await row.click();
+    await page.waitForSelector('.case-view[data-project="benzhi-life"]');
+
+    await page.evaluate(() => history.back());
+    await page.waitForSelector(".hero:not([hidden])");
+    await page.waitForFunction(() => document.activeElement?.dataset.slug === "benzhi-life");
+
+    assert.equal(await page.locator("[data-split-door]").getAttribute("data-active"), "branding");
+    assert.equal(
+      await page.locator('[data-panel="branding"] [data-project-row].is-selected').getAttribute("data-slug"),
+      "benzhi-life",
+    );
+  });
+});
+
+test("a direct project URL closes to All Works without inventing Home history", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(`${url}#/work/elora`);
+    await page.waitForSelector('.case-view[data-project="elora"]');
+
+    assert.equal((await page.locator("[data-back-category]").textContent()).trim(), "BACK TO WORKS");
+    assert.equal(await page.locator("[data-back-category]").getAttribute("href"), "#/works");
+    assert.equal(await page.locator("[data-close-case]").last().getAttribute("href"), "#/works");
+
+    await page.locator("[data-close-case]").last().click();
+    await page.waitForURL(/#\/works$/);
+    assert.equal(await page.evaluate(() => sessionStorage.getItem(window.PortfolioState.STORAGE_KEY)), null);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("route changes use View Transitions unless reduced motion is requested", async () => {
+  async function transitionCount(reducedMotion) {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        reducedMotion,
+      });
+      const page = await context.newPage();
+      await page.addInitScript(() => {
+        window.__viewTransitionCalls = 0;
+        document.startViewTransition = (callback) => {
+          window.__viewTransitionCalls += 1;
+          callback();
+          const resolved = Promise.resolve();
+          return { ready: resolved, updateCallbackDone: resolved, finished: resolved };
+        };
+      });
+      await page.goto(url);
+      await page.locator('[data-panel="ai"]').hover();
+      await page.waitForTimeout(1100);
+      await page.locator('[data-project-row][data-slug="elora"]').click();
+      await page.waitForSelector('.case-view[data-project="elora"]');
+      return await page.evaluate(() => window.__viewTransitionCalls);
+    } finally {
+      await browser.close();
+    }
+  }
+
+  assert.ok(await transitionCount("no-preference") >= 1);
+  assert.equal(await transitionCount("reduce"), 0);
+});
