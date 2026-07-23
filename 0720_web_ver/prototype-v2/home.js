@@ -4,6 +4,9 @@ function createHomeController(root) {
   let activeCategory = "";
   let selectedSlug = "";
   let activationTimer = 0;
+  let touchArmedSlug = "";
+  let touchArmedCategory = "";
+  let suppressFocusActivation = false;
 
   function categoryFor(id) {
     return window.PORTFOLIO_DATA.categories.find((category) => category.id === id);
@@ -12,6 +15,11 @@ function createHomeController(root) {
   function cancelActivation() {
     clearTimeout(activationTimer);
     activationTimer = 0;
+  }
+
+  function resetTouchArm() {
+    touchArmedSlug = "";
+    touchArmedCategory = "";
   }
 
   function renderRows(panel, category) {
@@ -26,7 +34,7 @@ function createHomeController(root) {
       const project = window.PORTFOLIO_DATA.projects[item.slug];
       const route = { name: "work", slug: item.slug };
       if (item.chapter) route.chapter = item.chapter;
-      return `<a id="project-${category.id}-${item.slug}" data-project-row data-slug="${item.slug}" data-preview-key="${item.previewKey}" href="${window.PortfolioRouter.toHash(route)}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${project.title}</strong><em>${item.role}</em><b data-open-project aria-label="Open ${project.title}">↗</b></a>`;
+      return `<a id="project-${category.id}-${item.slug}" data-project-row data-slug="${item.slug}" data-preview-key="${item.previewKey}" href="${window.PortfolioRouter.toHash(route)}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${project.title}</strong><em>${item.role}</em><b data-open-project aria-hidden="true">↗</b></a>`;
     }).join("");
     const archive = category.id === "ai"
       ? '<a class="strip-archive-link" href="#/archive/ai">AI CAMPAIGN ARCHIVE <b aria-hidden="true">↗</b></a>'
@@ -34,11 +42,12 @@ function createHomeController(root) {
     list.innerHTML = rows + archive;
   }
 
-  function selectProject(panel, slug) {
+  function selectProject(panel, slug, options = {}) {
     const category = categoryFor(panel.dataset.panel);
     const item = category.entries.find((entry) => entry.slug === slug) || category.entries[0];
     const preview = panel.querySelector("[data-project-preview]");
     const image = window.PORTFOLIO_DATA.imageSets[item.previewKey];
+    if (options.preserveTouchArm !== true) resetTouchArm();
     selectedSlug = item.slug;
     preview.src = image.src;
     preview.srcset = image.srcset;
@@ -50,6 +59,7 @@ function createHomeController(root) {
 
   function activateCategory(id, preferredSlug = "", options = {}) {
     cancelActivation();
+    if (activeCategory !== id) resetTouchArm();
     activeCategory = id;
     root.dataset.active = id;
 
@@ -76,6 +86,32 @@ function createHomeController(root) {
       trigger.setAttribute("aria-expanded", "true");
       selectProject(panel, preferredSlug);
     });
+  }
+
+  function collapseCategory() {
+    const previousCategory = activeCategory;
+    cancelActivation();
+    resetTouchArm();
+    activeCategory = "";
+    selectedSlug = "";
+    root.dataset.active = "";
+
+    panels.forEach((panel) => {
+      panel.classList.remove("is-active", "is-keyboard-active");
+      panel.querySelector("[data-panel-trigger]").setAttribute("aria-expanded", "false");
+      const list = panel.querySelector("[data-project-list]");
+      list.hidden = true;
+      list.inert = true;
+    });
+
+    if (previousCategory) {
+      const trigger = root.querySelector(
+        `[data-panel="${previousCategory}"] [data-panel-trigger]`,
+      );
+      suppressFocusActivation = true;
+      trigger?.focus({ preventScroll: true });
+      suppressFocusActivation = false;
+    }
   }
 
   function snapshot() {
@@ -117,7 +153,11 @@ function createHomeController(root) {
     });
     panel.addEventListener("pointerleave", cancelActivation);
     trigger.addEventListener("click", () => activateCategory(category.id));
-    trigger.addEventListener("focus", () => activateCategory(category.id, "", { immediate: true }));
+    trigger.addEventListener("focus", () => {
+      if (!suppressFocusActivation) {
+        activateCategory(category.id, "", { immediate: true });
+      }
+    });
     panel.addEventListener("pointerover", (event) => {
       if (event.pointerType === "touch") return;
       const row = event.target.closest("[data-project-row]");
@@ -133,13 +173,40 @@ function createHomeController(root) {
       const link = event.target.closest("a");
       if (!link) return;
       const row = link.closest("[data-project-row]");
-      if (row) selectProject(panel, row.dataset.slug);
+      if (row) {
+        const touchLike = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        const keyboardActivation = event.detail === 0;
+        const explicitOpen = Boolean(event.target.closest("[data-open-project]"));
+        const armed = (
+          touchArmedCategory === category.id
+          && touchArmedSlug === row.dataset.slug
+        );
+        if (touchLike && !keyboardActivation && !explicitOpen && !armed) {
+          event.preventDefault();
+          touchArmedCategory = category.id;
+          touchArmedSlug = row.dataset.slug;
+          selectProject(panel, row.dataset.slug, { preserveTouchArm: true });
+          return;
+        }
+        resetTouchArm();
+        selectProject(panel, row.dataset.slug);
+      }
       saveHomeState();
     });
   });
 
   root.addEventListener("pointerleave", cancelActivation);
   document.querySelector(".nav-actions")?.addEventListener("click", saveHomeState);
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape"
+      && document.body.dataset.view === "home"
+      && activeCategory
+    ) {
+      event.preventDefault();
+      collapseCategory();
+    }
+  });
 
   return { activateCategory, selectProject, snapshot, restore };
 }

@@ -1257,6 +1257,13 @@ html.is-route-transitioning body[data-view="work"] .case-hero-media {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(case-hero),
+  ::view-transition-old(case-hero),
+  ::view-transition-new(case-hero) {
+    animation-duration: 1ms !important;
+    transform: none !important;
+  }
+
   .case-view *,
   .case-view *::before,
   .case-view *::after {

@@ -704,3 +704,200 @@ test("every index route exposes persistent identity and close navigation with on
     }
   });
 });
+
+test("mobile uses first tap to select and second tap to open", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await page.goto(url);
+    await page.locator('[data-panel="branding"] [data-panel-trigger]').tap();
+    await page.waitForTimeout(1100);
+    const activeBox = await page.locator('[data-panel="branding"]').boundingBox();
+    const siblingBox = await page.locator('[data-panel="ai"]').boundingBox();
+    assert.ok(activeBox.height > siblingBox.height * 1.8);
+    const row = page.locator(
+      '[data-panel="branding"] [data-project-row][data-slug="benzhi-life"]',
+    );
+    await row.tap();
+    assert.equal(await row.getAttribute("aria-current"), "true");
+    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
+    await row.tap();
+    assert.match(page.url(), /#\/work\/benzhi-life/);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("reduced motion disables shared-element travel", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1440, height: 900 },
+      reducedMotion: "reduce",
+    });
+    await page.goto(url);
+    assert.equal(
+      await page.evaluate(() => (
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--door-time")
+          .trim()
+      )),
+      "120ms",
+    );
+  } finally {
+    await browser.close();
+  }
+});
+
+test("touch arrow is an always-visible direct-open target", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await page.goto(url);
+    await page.locator('[data-panel="ai"] [data-panel-trigger]').tap();
+    await page.waitForTimeout(1100);
+
+    const row = page.locator('[data-panel="ai"] [data-project-row][data-slug="genz-glitch"]');
+    const arrow = row.locator("[data-open-project]");
+    const target = await arrow.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return {
+        width: rect.width,
+        height: rect.height,
+        opacity: Number.parseFloat(style.opacity),
+        visibility: style.visibility,
+      };
+    });
+    assert.ok(target.width >= 44);
+    assert.ok(target.height >= 44);
+    assert.equal(target.opacity, 1);
+    assert.equal(target.visibility, "visible");
+
+    await arrow.tap();
+    await page.waitForURL(/#\/work\/genz-glitch/);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("touch selection resets when the category or selected row changes", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await page.goto(url);
+    const brandingTrigger = page.locator('[data-panel="branding"] [data-panel-trigger]');
+    const aiTrigger = page.locator('[data-panel="ai"] [data-panel-trigger]');
+    const benzhi = page.locator('[data-panel="branding"] [data-project-row][data-slug="benzhi-life"]');
+    const gallery = page.locator('[data-panel="branding"] [data-project-row][data-slug="gallery-flowers"]');
+
+    await brandingTrigger.tap();
+    await page.waitForTimeout(1100);
+    await benzhi.tap();
+    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
+
+    await aiTrigger.tap();
+    await page.waitForTimeout(1100);
+    await brandingTrigger.tap();
+    await page.waitForTimeout(1100);
+    await benzhi.tap();
+    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
+
+    await gallery.tap();
+    assert.equal(await gallery.getAttribute("aria-current"), "true");
+    await benzhi.tap();
+    assert.equal(await benzhi.getAttribute("aria-current"), "true");
+    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
+    await benzhi.tap();
+    await page.waitForURL(/#\/work\/benzhi-life/);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("keyboard focus selects rows, Enter opens, and Escape collapses Home", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    const panel = page.locator('[data-panel="space"]');
+    const trigger = panel.locator("[data-panel-trigger]");
+    const row = panel.locator('[data-project-row][data-slug="lenovo-smart-home"]');
+
+    await trigger.focus();
+    assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+    await row.focus();
+    assert.equal(await row.getAttribute("aria-current"), "true");
+    assert.equal(await row.evaluate((element) => getComputedStyle(element).outlineStyle), "solid");
+
+    await page.keyboard.press("Escape");
+    assert.equal(await trigger.getAttribute("aria-expanded"), "false");
+    assert.equal(await panel.locator("[data-project-list]").getAttribute("hidden"), "");
+    assert.equal(await page.evaluate(() => document.activeElement?.matches("[data-panel-trigger]")), true);
+
+    await page.waitForTimeout(1100);
+    const widths = await page.locator("[data-panel]").evaluateAll((panels) => (
+      panels.map((item) => item.getBoundingClientRect().width / window.innerWidth)
+    ));
+    widths.forEach((width) => assertApprox(width, 1 / 3, 0.015, "collapsed panel ratio"));
+
+    await page.keyboard.press("Enter");
+    assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+    await row.focus();
+    await page.keyboard.press("Enter");
+    await page.waitForURL(/#\/work\/lenovo-smart-home/);
+  });
+});
+
+test("reduced motion keeps input state changes but removes transforms and route travel", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      reducedMotion: "reduce",
+    });
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      window.__viewTransitionCalls = 0;
+      document.startViewTransition = (callback) => {
+        window.__viewTransitionCalls += 1;
+        callback();
+        const resolved = Promise.resolve();
+        return { ready: resolved, updateCallbackDone: resolved, finished: resolved };
+      };
+    });
+    await page.goto(url);
+    await page.locator('[data-panel="ai"] [data-panel-trigger]').focus();
+    const motion = await page.locator('[data-panel="ai"]').evaluate((panel) => {
+      const preview = panel.querySelector(".project-preview");
+      const heading = panel.querySelector(".panel-trigger");
+      return {
+        panelTransform: getComputedStyle(panel).transform,
+        previewTransform: getComputedStyle(preview).transform,
+        headingTransform: getComputedStyle(heading).transform,
+        previewTransitionDelay: getComputedStyle(preview).transitionDelay,
+        viewTransitionName: getComputedStyle(preview).viewTransitionName,
+      };
+    });
+    assert.equal(motion.panelTransform, "none");
+    assert.equal(motion.previewTransform, "none");
+    assert.equal(motion.headingTransform, "none");
+    assert.match(motion.previewTransitionDelay, /(^|,\s*)0s($|,)/);
+    assert.equal(motion.viewTransitionName, "none");
+
+    await page.locator('[data-panel="ai"] [data-project-row][data-slug="elora"]').click();
+    await page.waitForSelector('.case-view[data-project="elora"]');
+    assert.equal(await page.evaluate(() => window.__viewTransitionCalls), 0);
+  } finally {
+    await browser.close();
+  }
+});

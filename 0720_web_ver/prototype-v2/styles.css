@@ -36,6 +36,11 @@ button {
   border: 0;
 }
 
+:focus-visible {
+  outline: 2px solid #f3c767;
+  outline-offset: 4px;
+}
+
 .hero {
   position: relative;
   min-height: 100svh;
@@ -338,10 +343,10 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
 
 .project-strip a {
   display: grid;
-  grid-template-columns: 30px minmax(110px, 1fr) minmax(120px, 0.8fr) 18px;
+  grid-template-columns: 30px minmax(110px, 1fr) minmax(120px, 0.8fr) 44px;
   align-items: center;
   gap: 12px;
-  min-height: 36px;
+  min-height: 44px;
   color: #fff8ec;
   text-decoration: none;
   transition: background 250ms ease, padding 250ms ease;
@@ -380,13 +385,19 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
 }
 
 .project-strip b {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  align-items: center;
   color: var(--gold);
   font-weight: 400;
+  justify-self: end;
+  place-content: center;
   text-align: right;
 }
 
 .project-strip .strip-archive-link {
-  grid-template-columns: 1fr 18px;
+  grid-template-columns: 1fr 44px;
   color: var(--gold);
   font-size: 0.68rem;
   font-weight: 700;
@@ -481,8 +492,8 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
   }
 
   .project-strip a {
-    grid-template-columns: 26px minmax(100px, 1fr) 18px;
-    min-height: 38px;
+    grid-template-columns: 26px minmax(100px, 1fr) 44px;
+    min-height: 44px;
   }
 
   .project-strip em {
@@ -496,6 +507,11 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
 }
 
 @media (prefers-reduced-motion: reduce) {
+  :root {
+    --door-time: 120ms;
+    --content-time: 120ms;
+  }
+
   *,
   *::before,
   *::after {
@@ -503,5 +519,15 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
     transition-duration: 120ms !important;
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
+  }
+
+  .door-panel,
+  .panel-image,
+  .panel-trigger,
+  .panel-title,
+  .project-strip,
+  .project-preview {
+    transform: none !important;
+    transition-delay: 0ms !important;
   }
 }
