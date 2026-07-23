@@ -206,3 +206,79 @@ test("project navigation saves and restores the active category and selection", 
     assert.match(await page.locator('[data-panel="ai"] [data-project-preview]').getAttribute("src"), /alldayfit-1280\.webp$/);
   });
 });
+
+test("a project row opens an internal editorial case with persistent navigation", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.locator('[data-panel="ai"]').hover();
+    await page.waitForTimeout(1100);
+    await page.locator('[data-project-row][data-slug="elora"]').click();
+    await page.waitForSelector(".case-view");
+
+    assert.equal(await page.locator(".case-view h1").textContent(), "ELORA");
+    assert.equal(await page.locator(".case-nav").isVisible(), true);
+    assert.equal(await page.locator(".case-meta").isVisible(), true);
+    assert.equal(await page.locator(".case-proof").count(), 4);
+    assert.equal(await page.locator(".case-process").count(), 1);
+    assert.equal(await page.locator("[data-back-category]").isVisible(), true);
+    assert.equal(await page.locator(".hero").isHidden(), true);
+
+    const external = page.locator('a[target="_blank"]');
+    assert.equal(await external.count(), 1);
+    assert.match(await external.textContent(), /OPEN LIVE PROJECT/);
+    assert.equal(await external.getAttribute("href"), "https://www.jihye.space/");
+  });
+});
+
+test("projects without an explicit live URL remain entirely inside the portfolio", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.goto(`${url}#/work/gallery-flowers`);
+    await page.waitForSelector('.case-view[data-project="gallery-flowers"]');
+
+    assert.equal(await page.locator(".case-view h1").textContent(), "Gallery Flowers");
+    assert.equal(await page.locator('a[target="_blank"]').count(), 0);
+    assert.equal(await page.locator(".live-project").count(), 0);
+    assert.equal(await page.locator(".case-proof").count(), 4);
+  });
+});
+
+test("KD Navien keeps one case structure while changing its chapter context", async () => {
+  await withPage({ width: 390, height: 844 }, async (page) => {
+    await page.goto(`${url}#/work/kd-navien?chapter=exhibition-space`);
+    await page.waitForSelector('.case-view[data-chapter="exhibition-space"]');
+
+    assert.equal(await page.locator(".case-view h1").textContent(), "KD Navien China");
+    assert.match(await page.locator(".case-hero-copy p").textContent(), /Exhibition Direction/);
+    assert.match(await page.locator(".case-story").textContent(), /visitor path/i);
+    assert.equal(await page.locator(".case-view").getAttribute("data-category"), "space");
+
+    const geometry = await page.evaluate(() => {
+      const hero = document.querySelector(".case-hero").getBoundingClientRect();
+      const firstProof = document.querySelector(".case-proof").getBoundingClientRect();
+      const nav = document.querySelector(".case-nav").getBoundingClientRect();
+      const processMedia = document.querySelector(".case-process-media").getBoundingClientRect();
+      return {
+        heroHeight: hero.height,
+        viewportHeight: window.innerHeight,
+        firstProofWidth: firstProof.width,
+        viewportWidth: window.innerWidth,
+        navHeight: nav.height,
+        processMediaHeight: processMedia.height,
+        proofRatios: Array.from(document.querySelectorAll(".case-proof-media img")).map((image) => {
+          const media = image.parentElement.getBoundingClientRect();
+          return {
+            rendered: media.width / media.height,
+            natural: image.naturalWidth / image.naturalHeight,
+          };
+        }),
+      };
+    });
+
+    assert.ok(geometry.heroHeight >= geometry.viewportHeight * 0.72);
+    assert.ok(geometry.firstProofWidth >= geometry.viewportWidth * 0.88);
+    assert.ok(geometry.navHeight <= 72);
+    assert.ok(geometry.processMediaHeight <= geometry.viewportWidth * 1.2);
+    geometry.proofRatios.forEach(({ rendered, natural }) => {
+      assertApprox(rendered, natural, 0.03, "mobile proof should preserve its source proportion");
+    });
+  });
+});
