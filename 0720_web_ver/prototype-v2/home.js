@@ -9,8 +9,19 @@ function createHomeController(root) {
     return window.PORTFOLIO_DATA.categories.find((category) => category.id === id);
   }
 
+  function cancelActivation() {
+    clearTimeout(activationTimer);
+    activationTimer = 0;
+  }
+
   function renderRows(panel, category) {
     const list = panel.querySelector("[data-project-list]");
+    const trigger = panel.querySelector("[data-panel-trigger]");
+    list.id = `project-list-${category.id}`;
+    list.hidden = true;
+    list.inert = true;
+    trigger.setAttribute("aria-controls", list.id);
+
     const rows = category.entries.map((item, index) => {
       const project = window.PORTFOLIO_DATA.projects[item.slug];
       const route = { name: "work", slug: item.slug };
@@ -37,14 +48,33 @@ function createHomeController(root) {
     });
   }
 
-  function activateCategory(id, preferredSlug = "") {
+  function activateCategory(id, preferredSlug = "", options = {}) {
+    cancelActivation();
     activeCategory = id;
     root.dataset.active = id;
+
     panels.forEach((panel) => {
       const active = panel.dataset.panel === id;
-      panel.classList.toggle("is-active", active);
-      panel.querySelector("[data-panel-trigger]").setAttribute("aria-expanded", String(active));
-      if (active) selectProject(panel, preferredSlug);
+      const list = panel.querySelector("[data-project-list]");
+      const trigger = panel.querySelector("[data-panel-trigger]");
+
+      if (!active) {
+        panel.classList.remove("is-active", "is-keyboard-active");
+        trigger.setAttribute("aria-expanded", "false");
+        list.hidden = true;
+        list.inert = true;
+        return;
+      }
+
+      list.hidden = false;
+      list.inert = false;
+      panel.classList.toggle("is-keyboard-active", options.immediate === true);
+      if (options.immediate !== true && !panel.classList.contains("is-active")) {
+        void list.offsetHeight;
+      }
+      panel.classList.add("is-active");
+      trigger.setAttribute("aria-expanded", "true");
+      selectProject(panel, preferredSlug);
     });
   }
 
@@ -57,9 +87,15 @@ function createHomeController(root) {
     };
   }
 
+  function saveHomeState() {
+    window.PortfolioState.saveHomeState(snapshot());
+  }
+
   function restore(value) {
     const state = window.PortfolioState.normalizeHomeState(value);
-    if (state.activeCategory) activateCategory(state.activeCategory, state.selectedSlug);
+    if (state.activeCategory) {
+      activateCategory(state.activeCategory, state.selectedSlug, { immediate: true });
+    }
     requestAnimationFrame(() => {
       window.scrollTo(0, state.scrollY);
       if (state.focusId) document.getElementById(state.focusId)?.focus({ preventScroll: true });
@@ -68,13 +104,20 @@ function createHomeController(root) {
 
   panels.forEach((panel) => {
     const category = categoryFor(panel.dataset.panel);
+    const trigger = panel.querySelector("[data-panel-trigger]");
     renderRows(panel, category);
+
     panel.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "touch") return;
-      clearTimeout(activationTimer);
-      activationTimer = setTimeout(() => activateCategory(category.id), 260);
+      cancelActivation();
+      activationTimer = setTimeout(() => {
+        activationTimer = 0;
+        activateCategory(category.id);
+      }, 260);
     });
-    panel.querySelector("[data-panel-trigger]").addEventListener("click", () => activateCategory(category.id));
+    panel.addEventListener("pointerleave", cancelActivation);
+    trigger.addEventListener("click", () => activateCategory(category.id));
+    trigger.addEventListener("focus", () => activateCategory(category.id, "", { immediate: true }));
     panel.addEventListener("pointerover", (event) => {
       if (event.pointerType === "touch") return;
       const row = event.target.closest("[data-project-row]");
@@ -83,11 +126,20 @@ function createHomeController(root) {
     panel.addEventListener("focusin", (event) => {
       const row = event.target.closest("[data-project-row]");
       if (row) {
-        activateCategory(category.id);
-        selectProject(panel, row.dataset.slug);
+        activateCategory(category.id, row.dataset.slug, { immediate: true });
       }
     });
+    panel.querySelector("[data-project-list]").addEventListener("click", (event) => {
+      const link = event.target.closest("a");
+      if (!link) return;
+      const row = link.closest("[data-project-row]");
+      if (row) selectProject(panel, row.dataset.slug);
+      saveHomeState();
+    });
   });
+
+  root.addEventListener("pointerleave", cancelActivation);
+  document.querySelector(".nav-actions")?.addEventListener("click", saveHomeState);
 
   return { activateCategory, selectProject, snapshot, restore };
 }

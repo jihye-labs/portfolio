@@ -107,6 +107,7 @@ button {
 
 .door-panel {
   --panel-tone: rgba(44, 5, 0, 0.14);
+  --panel-ground: #3c0c08;
   position: relative;
   flex: 0 1 33.333%;
   min-width: 0;
@@ -124,12 +125,32 @@ button {
 
 .ai-panel {
   --panel-tone: rgba(9, 3, 42, 0.14);
+  --panel-ground: #0f0829;
   background: #100929;
 }
 
 .space-panel {
   --panel-tone: rgba(0, 7, 48, 0.16);
+  --panel-ground: #071b4a;
   background: #071342;
+}
+
+.door-panel::after {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 34%;
+  background: linear-gradient(180deg, rgba(4, 4, 3, 0.7), rgba(4, 4, 3, 0));
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 520ms ease 280ms;
+}
+
+.door-panel.is-active::after {
+  opacity: 1;
 }
 
 .split-door[data-active]:not([data-active=""]) .door-panel:not(.is-active) {
@@ -156,10 +177,12 @@ button {
   object-position: center;
   transform: scale(1.06);
   filter: saturate(0.94) contrast(1.02);
+  opacity: 1;
   transition:
     transform 1220ms var(--ease-door),
     filter var(--door-time) var(--ease-door),
-    object-position var(--door-time) var(--ease-door);
+    object-position var(--door-time) var(--ease-door),
+    opacity 620ms ease;
 }
 
 .branding-panel .panel-image {
@@ -186,6 +209,7 @@ button {
 .door-panel.is-active .panel-image {
   transform: scale(1.01);
   filter: saturate(1.02) contrast(1.03);
+  opacity: 0.13;
 }
 
 .split-door[data-active]:not([data-active=""]) .door-panel:not(.is-active) .panel-image {
@@ -242,7 +266,7 @@ button {
 }
 
 .door-panel.is-active .panel-trigger {
-  top: 21%;
+  top: 17%;
 }
 
 .door-panel.is-active .panel-title {
@@ -260,16 +284,17 @@ button {
 .project-preview {
   position: absolute;
   z-index: 3;
-  inset: 18% 8% 13%;
+  inset: 0;
   overflow: hidden;
+  background: var(--panel-ground);
   opacity: 0;
   pointer-events: none;
-  transform: scale(0.985);
-  transition: opacity 520ms ease 360ms, transform 780ms var(--ease-door) 260ms;
+  transform: scale(1.015);
+  transition: opacity 620ms ease 300ms, transform 880ms var(--ease-door) 220ms;
 }
 
 .door-panel.is-active .project-preview {
-  opacity: 0.46;
+  opacity: 1;
   transform: scale(1);
   view-transition-name: case-hero;
 }
@@ -277,26 +302,29 @@ button {
 .project-preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  filter: saturate(0.98) contrast(1.02);
 }
 
 .project-strip {
   position: absolute;
   z-index: 6;
-  top: 52%;
   right: 0;
+  bottom: 7%;
   left: 0;
-  bottom: auto;
-  padding: 16px clamp(20px, 2.4vw, 38px);
-  border-block: 1px solid rgba(255, 244, 222, 0.22);
-  background: linear-gradient(100deg, rgba(7, 7, 6, 0.66), rgba(7, 7, 6, 0.28));
-  backdrop-filter: blur(10px);
+  padding: 6px clamp(20px, 2.4vw, 38px);
+  border-top: 1px solid rgba(255, 244, 222, 0.28);
+  background: rgba(7, 7, 6, 0.76);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(28px);
+  transform: translateY(18px);
   transition:
-    opacity 620ms ease 360ms,
-    transform 820ms var(--ease-door) 300ms;
+    opacity 540ms ease 400ms,
+    transform 780ms var(--ease-door) 340ms;
+}
+
+.project-strip[hidden] {
+  display: none;
 }
 
 .door-panel.is-active .project-strip {
@@ -310,15 +338,10 @@ button {
   grid-template-columns: 30px minmax(110px, 1fr) minmax(120px, 0.8fr) 18px;
   align-items: center;
   gap: 12px;
-  min-height: 46px;
-  border-top: 1px solid var(--line);
+  min-height: 36px;
   color: #fff8ec;
   text-decoration: none;
   transition: background 250ms ease, padding 250ms ease;
-}
-
-.project-strip a:first-child {
-  border-top: 0;
 }
 
 .project-strip a:hover,
@@ -364,6 +387,11 @@ button {
   color: var(--gold);
   font-size: 0.68rem;
   font-weight: 700;
+}
+
+.door-panel.is-keyboard-active .project-preview,
+.door-panel.is-keyboard-active .project-strip {
+  transition: none;
 }
 
 .route-view[hidden] {
@@ -441,20 +469,17 @@ button {
     top: max(24%, 108px);
   }
 
-  .project-preview {
-    inset: 16% 5% 8%;
-  }
-
   .project-strip {
-    top: 42%;
-    max-height: 52%;
+    top: auto;
+    bottom: 0;
+    max-height: 44%;
     overflow: auto;
-    padding: 10px 18px;
+    padding: 6px 18px;
   }
 
   .project-strip a {
     grid-template-columns: 26px minmax(100px, 1fr) 18px;
-    min-height: 42px;
+    min-height: 38px;
   }
 
   .project-strip em {
