@@ -26,6 +26,17 @@ test("KD Navien keeps one project record with two entry chapters", () => {
   assert.deepEqual(entries.map(({ chapter }) => chapter), ["brand-system", "exhibition-space"]);
 });
 
+test("ELORA uses the campaign key visual and every image set reserves dimensions", () => {
+  assert.equal(data.projects.elora.image, data.imageSets["elora-keyvisual"]);
+  assert.equal(data.imageSets["elora-keyvisual"].width, 1280);
+  assert.equal(data.imageSets["elora-keyvisual"].height, 720);
+
+  for (const [key, image] of Object.entries(data.imageSets)) {
+    assert.ok(image.width > 0, `${key} has no intrinsic width`);
+    assert.ok(image.height > 0, `${key} has no intrinsic height`);
+  }
+});
+
 test("route helpers round-trip a project chapter", () => {
   const route = { name: "work", slug: "kd-navien", chapter: "brand-system" };
   assert.deepEqual(router.parseHash(router.toHash(route)), route);
@@ -49,11 +60,12 @@ test("Home state normalizes unknown values", () => {
 test("classic browser scripts install all public APIs together", () => {
   const context = vm.createContext({ window: {}, URLSearchParams });
 
-  for (const filename of ["data.js", "router.js", "state.js"]) {
+  for (const filename of ["assets/optimized/asset-meta.js", "data.js", "router.js", "state.js"]) {
     const source = fs.readFileSync(new URL(`../${filename}`, import.meta.url), "utf8");
     vm.runInContext(source, context, { filename });
   }
 
+  assert.ok(context.window.PORTFOLIO_IMAGE_META);
   assert.ok(context.window.PORTFOLIO_DATA);
   assert.ok(context.window.PortfolioRouter);
   assert.ok(context.window.PortfolioState);

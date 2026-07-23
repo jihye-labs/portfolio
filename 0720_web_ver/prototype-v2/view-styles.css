@@ -465,8 +465,30 @@
 }
 
 .case-not-found {
+  display: grid;
+  min-height: 100svh;
+  align-content: center;
+  gap: 24px;
   margin: 0;
-  padding: 120px 32px;
+  padding: 96px clamp(24px, 8vw, 120px);
+  background: var(--case-paper);
+}
+
+.case-not-found a {
+  color: var(--case-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.case-not-found p {
+  max-width: 12ch;
+  margin: 0;
+  font-size: clamp(2.8rem, 7vw, 7rem);
+  font-weight: 520;
+  letter-spacing: 0;
+  line-height: 0.94;
 }
 
 @media (max-width: 760px) {

@@ -20,6 +20,7 @@ export const sources = {
   "benzhi-life": path.join(portfolioDir, "web/public/media/btl-archive/xiang-after.webp"),
   "sk-bullsone": path.join(portfolioDir, "web/public/media/btl-archive/sk-spatial-identity.webp"),
   "elora": path.join(portfolioDir, "web/public/media/ai-archive/elora-poster.webp"),
+  "elora-keyvisual": path.join(prototypeDir, "assets/elora-keyvisual.jpg"),
   "genz-glitch": path.join(workspaceDir, "4-2_AIWORKS/4_genZglichi/genZglichi.png"),
   "alldayfit": path.join(portfolioDir, "web/public/media/ai-archive/alldayfit-hero.jpg"),
   "market-marble": path.join(portfolioDir, "web/public/media/ai-archive/marketmable-hero.jpg"),

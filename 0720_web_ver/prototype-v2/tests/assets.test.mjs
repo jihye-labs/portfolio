@@ -5,6 +5,7 @@ import { createRequire } from "node:module";
 import { test } from "node:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 import { sources, variants } from "../scripts/asset-manifest.mjs";
 
 const require = createRequire(import.meta.url);
@@ -13,7 +14,13 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outputDir = path.join(root, "assets", "optimized");
 const expectedFilenames = Object.keys(sources)
   .flatMap((key) => variants.map(({ width }) => `${key}-${width}.webp`))
+  .concat("asset-meta.js")
   .sort();
+
+test("ELORA key visual belongs to the deterministic asset contract", () => {
+  assert.ok(sources["elora-keyvisual"]);
+  assert.equal(path.basename(sources["elora-keyvisual"]), "elora-keyvisual.jpg");
+});
 
 test("optimized directory contains exactly the manifest output set", async () => {
   assert.deepEqual((await readdir(outputDir)).sort(), expectedFilenames);
@@ -39,6 +46,23 @@ test("every runtime image is a valid, bounded WebP variant", async () => {
     assert.ok(
       decodedWidths.get(1280) >= decodedWidths.get(480),
       `${key}-1280.webp is narrower than ${key}-480.webp`,
+    );
+  }
+});
+
+test("generated asset metadata reserves the decoded 1280-variant dimensions", async () => {
+  const source = await readFile(path.join(outputDir, "asset-meta.js"), "utf8");
+  const context = vm.createContext({ window: {} });
+  vm.runInContext(source, context, { filename: "asset-meta.js" });
+  const metadata = context.window.PORTFOLIO_IMAGE_META;
+
+  assert.deepEqual(Object.keys(metadata), Object.keys(sources));
+  for (const key of Object.keys(sources)) {
+    const decoded = await sharp(path.join(outputDir, `${key}-1280.webp`)).metadata();
+    assert.deepEqual(
+      { ...metadata[key] },
+      { width: decoded.width, height: decoded.height },
+      `${key} metadata does not match its runtime image`,
     );
   }
 });

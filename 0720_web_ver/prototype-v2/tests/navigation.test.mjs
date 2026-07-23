@@ -226,6 +226,26 @@ test("a project row opens an internal editorial case with persistent navigation"
     assert.equal(await external.count(), 1);
     assert.match(await external.textContent(), /OPEN LIVE PROJECT/);
     assert.equal(await external.getAttribute("href"), "https://www.jihye.space/");
+    assert.equal(await external.getAttribute("rel"), "noopener noreferrer");
+
+    const heroImage = page.locator(".case-hero-media img");
+    assert.match(await heroImage.getAttribute("src"), /elora-keyvisual-1280\.webp$/);
+
+    const pictureReservations = await page.evaluate(() => (
+      Array.from(document.querySelectorAll(".case-view picture")).map((picture) => {
+        const image = picture.querySelector("img");
+        return {
+          width: Number(image.getAttribute("width")),
+          height: Number(image.getAttribute("height")),
+          ratio: getComputedStyle(picture).aspectRatio,
+        };
+      })
+    ));
+    pictureReservations.forEach(({ width, height, ratio }) => {
+      assert.ok(width > 0);
+      assert.ok(height > 0);
+      assert.notEqual(ratio, "auto");
+    });
   });
 });
 
@@ -267,7 +287,7 @@ test("KD Navien keeps one case structure while changing its chapter context", as
           const media = image.parentElement.getBoundingClientRect();
           return {
             rendered: media.width / media.height,
-            natural: image.naturalWidth / image.naturalHeight,
+            intrinsic: Number(image.getAttribute("width")) / Number(image.getAttribute("height")),
           };
         }),
       };
@@ -277,8 +297,19 @@ test("KD Navien keeps one case structure while changing its chapter context", as
     assert.ok(geometry.firstProofWidth >= geometry.viewportWidth * 0.88);
     assert.ok(geometry.navHeight <= 72);
     assert.ok(geometry.processMediaHeight <= geometry.viewportWidth * 1.2);
-    geometry.proofRatios.forEach(({ rendered, natural }) => {
-      assertApprox(rendered, natural, 0.03, "mobile proof should preserve its source proportion");
+    geometry.proofRatios.forEach(({ rendered, intrinsic }) => {
+      assertApprox(rendered, intrinsic, 0.03, "mobile proof should preserve its reserved source proportion");
     });
+  });
+});
+
+test("an invalid project chapter renders a truthful not-found state", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.goto(`${url}#/work/kd-navien?chapter=not-a-real-chapter`);
+    await page.waitForSelector(".case-not-found");
+
+    assert.equal(await page.locator(".case-view").count(), 0);
+    assert.match(await page.locator(".case-not-found").textContent(), /chapter not found/i);
+    assert.equal(await page.locator("[data-chapter]").count(), 0);
   });
 });

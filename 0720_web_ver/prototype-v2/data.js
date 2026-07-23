@@ -1,15 +1,23 @@
 (function () {
+const imageMetadata = typeof window !== "undefined"
+  ? window.PORTFOLIO_IMAGE_META
+  : require("./assets/optimized/asset-meta.js");
+
 function imageSet(key) {
+  const dimensions = imageMetadata[key];
+  if (!dimensions) throw new Error(`Missing image metadata for ${key}`);
   return {
     src: `./assets/optimized/${key}-1280.webp`,
     srcset: `./assets/optimized/${key}-480.webp 480w, ./assets/optimized/${key}-1280.webp 1280w`,
+    width: dimensions.width,
+    height: dimensions.height,
   };
 }
 
 const imageKeys = [
   "hero-branding", "hero-ai", "hero-space",
   "gallery-flowers", "kd-navien-brand", "benzhi-life", "sk-bullsone",
-  "elora", "genz-glitch", "alldayfit", "market-marble",
+  "elora", "elora-keyvisual", "genz-glitch", "alldayfit", "market-marble",
   "samsung-display-798", "kd-navien-space", "lenovo-smart-home", "samsung-sds",
   "gallery-brand-system", "gallery-menu", "gallery-content", "gallery-space",
   "kd-navien-usp", "kd-navien-ish", "kd-navien-showroom",
@@ -126,7 +134,7 @@ const projects = {
     problem: "The work needed emotional continuity and product desire beyond a collection of attractive generations.",
     judgment: "Direct one scent-memory narrative and select every image against the same cinematic campaign logic.",
     contribution: "Led concept framing, visual selection, film direction, and campaign presentation.",
-    image: imageSets.elora, liveUrl: "https://www.jihye.space/", detailMode: "full",
+    image: imageSets["elora-keyvisual"], liveUrl: "https://www.jihye.space/", detailMode: "full",
   },
   "genz-glitch": {
     slug: "genz-glitch", title: "GenZ-Glitch", category: "ai",

@@ -21,11 +21,13 @@
   function picture(image, alt, className = "", position = "50% 50%", eager = false) {
     const loading = eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
     const safeClass = escapeHTML(className);
-    return `<picture class="${safeClass}">
+    return `<picture class="${safeClass}" style="aspect-ratio:${image.width}/${image.height}">
       <source srcset="${escapeHTML(image.srcset)}" type="image/webp">
       <img
         src="${escapeHTML(image.src)}"
         alt="${escapeHTML(alt)}"
+        width="${image.width}"
+        height="${image.height}"
         decoding="async"
         ${loading}
         style="object-position:${escapeHTML(position)}"
@@ -54,8 +56,12 @@
   }
 
   function mergeChapter(project, chapter) {
-    if (!chapter || !project.chapters?.[chapter]) return project;
+    if (!chapter) return project;
     return { ...project, ...project.chapters[chapter] };
+  }
+
+  function hasChapter(project, chapter) {
+    return Boolean(chapter && Object.hasOwn(project.chapters || {}, chapter));
   }
 
   function renderProof(proof, index, category) {
@@ -77,7 +83,7 @@
     const next = sequence[(index + 1) % sequence.length];
     const liveURL = safeExternalURL(project.liveUrl);
     const live = liveURL
-      ? `<a class="live-project" href="${escapeHTML(liveURL)}" target="_blank" rel="noreferrer">
+      ? `<a class="live-project" href="${escapeHTML(liveURL)}" target="_blank" rel="noopener noreferrer">
           <span>OPEN LIVE PROJECT</span><span aria-hidden="true">↗</span>
         </a>`
       : "";
@@ -185,6 +191,13 @@
     const project = window.PORTFOLIO_DATA.projects[route.slug];
     if (!project) {
       mount.innerHTML = '<p class="case-not-found">Project not found.</p>';
+      return false;
+    }
+    if (route.chapter && !hasChapter(project, route.chapter)) {
+      mount.innerHTML = `<section class="case-not-found">
+        <a href="${escapeHTML(window.PortfolioRouter.toHash({ name: "work", slug: project.slug }))}">← ${escapeHTML(project.title)}</a>
+        <p>Project chapter not found.</p>
+      </section>`;
       return false;
     }
     mount.innerHTML = renderCase(project, route.chapter || "");
