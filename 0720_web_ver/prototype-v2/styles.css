@@ -296,6 +296,9 @@ button {
 .door-panel.is-active .project-preview {
   opacity: 1;
   transform: scale(1);
+}
+
+html.is-route-transitioning body[data-view="home"] .door-panel.is-active .project-preview {
   view-transition-name: case-hero;
 }
 

@@ -93,13 +93,16 @@
     const process = project.process;
     const categoryLabel = window.PORTFOLIO_DATA.categories
       .find(({ id }) => id === project.category)?.label || project.category;
-    const hasHomeState = Boolean(
-      sessionStorage.getItem(window.PortfolioState.STORAGE_KEY),
+    const routeContext = window.PortfolioNavigation?.getRouteContext();
+    const hasHomeOrigin = Boolean(
+      routeContext?.origin === "home"
+      && routeContext.homeEntryId
+      && routeContext.caseDepth > 0
     );
-    const backRoute = hasHomeState
-      ? window.PortfolioRouter.toHash({ name: "home", category: project.category })
+    const backRoute = hasHomeOrigin
+      ? routeContext.homeHash
       : window.PortfolioRouter.toHash({ name: "works" });
-    const backLabel = hasHomeState ? "BACK TO CATEGORY" : "BACK TO WORKS";
+    const backLabel = hasHomeOrigin ? "BACK TO CATEGORY" : "BACK TO WORKS";
 
     return `<article
       class="case-view case-view--${escapeHTML(project.category)}"

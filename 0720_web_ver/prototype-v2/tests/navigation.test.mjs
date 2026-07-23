@@ -420,3 +420,113 @@ test("route changes use View Transitions unless reduced motion is requested", as
   assert.ok(await transitionCount("no-preference") >= 1);
   assert.equal(await transitionCount("reduce"), 0);
 });
+
+test("Close skips a Previous/Next case chain and restores the saved Home origin", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.locator('[data-panel="ai"]').hover();
+    await page.waitForTimeout(1100);
+    const originRow = page.locator('[data-project-row][data-slug="elora"]');
+    await originRow.focus();
+    await originRow.click();
+    await page.waitForSelector('.case-view[data-project="elora"]');
+
+    await page.locator(".case-pagination > a").last().click();
+    await page.waitForSelector('.case-view[data-project="genz-glitch"]');
+    await page.locator("[data-close-case]").last().click();
+    await page.waitForSelector(".hero:not([hidden])");
+    await page.waitForFunction(() => document.activeElement?.dataset.slug === "elora");
+
+    assert.equal(await page.locator("[data-split-door]").getAttribute("data-active"), "ai");
+    assert.equal(
+      await page.locator('[data-panel="ai"] [data-project-row].is-selected').getAttribute("data-slug"),
+      "elora",
+    );
+    assert.equal(await page.evaluate(() => document.activeElement?.dataset.slug), "elora");
+  });
+});
+
+test("selected preview and detail Hero share one transition owner on entry and return", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      reducedMotion: "no-preference",
+    });
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      window.__transitionContracts = [];
+      document.startViewTransition = (callback) => {
+        const owners = () => Array.from(
+          document.querySelectorAll(".project-preview, .case-hero-media"),
+        ).filter((element) => (
+          element.getClientRects().length
+          && getComputedStyle(element).viewTransitionName === "case-hero"
+        )).map((element) => (
+          element.classList.contains("project-preview")
+            ? "project-preview"
+            : "case-hero-media"
+        ));
+        const before = owners();
+        callback();
+        const after = owners();
+        window.__transitionContracts.push({ before, after });
+        const resolved = Promise.resolve();
+        return { ready: resolved, updateCallbackDone: resolved, finished: resolved };
+      };
+    });
+    await page.goto(url);
+    await page.locator('[data-panel="ai"]').hover();
+    await page.waitForTimeout(1100);
+    await page.locator('[data-project-row][data-slug="elora"]').click();
+    await page.waitForSelector('.case-view[data-project="elora"]');
+    await page.locator("[data-close-case]").last().click();
+    await page.waitForSelector(".hero:not([hidden])");
+
+    assert.deepEqual(await page.evaluate(() => window.__transitionContracts), [
+      { before: ["project-preview"], after: ["case-hero-media"] },
+      { before: ["case-hero-media"], after: ["project-preview"] },
+    ]);
+    await page.waitForFunction(() => (
+      !document.documentElement.classList.contains("is-route-transitioning")
+    ));
+    assert.deepEqual(await page.evaluate(() => Array.from(
+      document.querySelectorAll(".project-preview, .case-hero-media"),
+    ).filter((element) => getComputedStyle(element).viewTransitionName !== "none")), []);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("stale Home storage cannot classify a new direct detail lifecycle as Home-originated", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(url);
+    await page.evaluate(() => {
+      window.PortfolioState.saveHomeState({
+        activeCategory: "ai",
+        selectedSlug: "elora",
+        focusId: "project-ai-elora",
+        scrollY: 0,
+      });
+    });
+    await page.goto("about:blank");
+    await page.goto(`${url}#/work/elora`);
+    await page.waitForSelector('.case-view[data-project="elora"]');
+
+    assert.notEqual(
+      await page.evaluate(() => sessionStorage.getItem(window.PortfolioState.STORAGE_KEY)),
+      null,
+    );
+    assert.equal((await page.locator("[data-back-category]").textContent()).trim(), "BACK TO WORKS");
+    assert.equal(await page.locator("[data-close-case]").last().getAttribute("href"), "#/works");
+
+    await page.locator("[data-close-case]").last().click();
+    await page.waitForURL(/#\/works$/);
+    await page.waitForFunction(() => !document.querySelector(".case-view"));
+    assert.equal(await page.locator(".case-view").count(), 0);
+  } finally {
+    await browser.close();
+  }
+});
