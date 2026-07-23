@@ -530,3 +530,177 @@ test("stale Home storage cannot classify a new direct detail lifecycle as Home-o
     await browser.close();
   }
 });
+
+test("All Works presents three full-width discipline bands and twelve internal case links", async () => {
+  await withPage({ width: 1440, height: 900 }, async (page) => {
+    await page.goto(`${url}#/works`);
+    await page.waitForSelector(".works-view");
+
+    assert.deepEqual(
+      await page.locator(".works-group h2").allTextContents(),
+      ["BRANDING+", "AI+", "SPACE BTL+"],
+    );
+    assert.equal(await page.locator('.works-view a[href^="#/work/"]').count(), 12);
+    assert.equal(await page.locator('.works-view a[href="#/archive/ai"]').count(), 1);
+    assert.equal(await page.locator('.works-view a[href="#/archive/btl"]').count(), 1);
+    assert.equal(await page.locator('.works-view a[href^="http"]').count(), 0);
+
+    const geometry = await page.evaluate(() => ({
+      bands: Array.from(document.querySelectorAll(".works-group")).map((group) => {
+        const rect = group.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, width: rect.width };
+      }),
+      viewport: window.innerWidth,
+      thumbReservations: Array.from(document.querySelectorAll(".works-thumb img")).map((image) => ({
+        width: Number(image.getAttribute("width")),
+        height: Number(image.getAttribute("height")),
+        ratio: getComputedStyle(image.parentElement).aspectRatio,
+      })),
+    }));
+
+    geometry.bands.forEach(({ left, right, width }) => {
+      assert.ok(left <= 1);
+      assert.ok(Math.abs(right - geometry.viewport) <= 1);
+      assert.equal(width, geometry.viewport);
+    });
+    geometry.thumbReservations.forEach(({ width, height, ratio }) => {
+      assert.ok(width > 0);
+      assert.ok(height > 0);
+      assert.notEqual(ratio, "auto");
+    });
+  });
+});
+
+test("All Works remains a legible quick scan without horizontal overflow on mobile", async () => {
+  await withPage({ width: 390, height: 844 }, async (page) => {
+    await page.goto(`${url}#/works`);
+    await page.waitForSelector(".works-view");
+
+    const layout = await page.evaluate(() => {
+      const rows = Array.from(document.querySelectorAll(".works-row"));
+      return {
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: window.innerWidth,
+        rows: rows.map((row) => {
+          const rect = row.getBoundingClientRect();
+          const title = row.querySelector("strong").getBoundingClientRect();
+          return {
+            width: rect.width,
+            height: rect.height,
+            titleWidth: title.width,
+            titleVisible: getComputedStyle(row.querySelector("strong")).display !== "none",
+          };
+        }),
+      };
+    });
+
+    assert.equal(layout.scrollWidth, layout.viewportWidth);
+    layout.rows.forEach((row) => {
+      assert.ok(row.width <= layout.viewportWidth);
+      assert.ok(row.height >= 68);
+      assert.ok(row.height <= 96);
+      assert.ok(row.titleWidth >= 120);
+      assert.equal(row.titleVisible, true);
+    });
+  });
+});
+
+test("Career tells the four-stage factual trajectory as accumulated experience expanding into AI", async () => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await withPage(viewport, async (page) => {
+      await page.goto(`${url}#/profile`);
+      await page.waitForSelector(".profile-view");
+
+      assert.match(
+        await page.locator(".profile-view h1").textContent(),
+        /Experience built the foundation/i,
+      );
+      assert.deepEqual(
+        await page.locator(".career-step time").allTextContents(),
+        ["2025–Now", "2016–2020", "2010–2016", "2005–2010"],
+      );
+      assert.deepEqual(
+        await page.locator(".career-step h2").allTextContents(),
+        [
+          "Brand Content & AI Strategy",
+          "BTL & Brand Experience",
+          "Service & Space Business Planning",
+          "Architecture & Technical Coordination",
+        ],
+      );
+      assert.match(await page.locator(".profile-intro").textContent(), /Korea.*China.*Japan/i);
+      assert.equal(await page.locator(".career-step .career-step").count(), 0);
+      assert.equal(
+        await page.locator(".index-nav__close").getAttribute("href"),
+        "#/",
+      );
+    });
+  }
+});
+
+test("AI Campaign Archive keeps five internal entries and one explicit external archive CTA", async () => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await withPage(viewport, async (page) => {
+      await page.goto(`${url}#/archive/ai`);
+      await page.waitForSelector(".archive-view--ai");
+
+      assert.equal(await page.locator(".archive-row").count(), 5);
+      assert.match(await page.locator("h1").textContent(), /AI Campaign Archive/i);
+      const external = page.locator('a[target="_blank"]');
+      assert.equal(await external.count(), 1);
+      assert.equal(
+        await external.getAttribute("href"),
+        "https://ai-project-archive-three.vercel.app/",
+      );
+      assert.equal(await external.getAttribute("rel"), "noopener noreferrer");
+      assert.equal(await page.locator('a[href*="jihye.space"]').count(), 0);
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+        viewport.width,
+      );
+    });
+  }
+});
+
+test("BTL Works Archive keeps three internal capability entries with real reserved images", async () => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await withPage(viewport, async (page) => {
+      await page.goto(`${url}#/archive/btl`);
+      await page.waitForSelector(".archive-view--btl");
+
+      assert.equal(await page.locator(".archive-row").count(), 3);
+      assert.match(await page.locator("h1").textContent(), /BTL Works Archive/i);
+      assert.equal(await page.locator('a[target="_blank"]').count(), 0);
+
+      const images = await page.evaluate(() => (
+        Array.from(document.querySelectorAll(".archive-row picture img")).map((image) => ({
+          width: Number(image.getAttribute("width")),
+          height: Number(image.getAttribute("height")),
+          loadedWidth: image.naturalWidth,
+          ratio: getComputedStyle(image.parentElement).aspectRatio,
+        }))
+      ));
+      assert.equal(images.length, 3);
+      images.forEach(({ width, height, loadedWidth, ratio }) => {
+        assert.ok(width > 0);
+        assert.ok(height > 0);
+        assert.ok(loadedWidth > 0);
+        assert.notEqual(ratio, "auto");
+      });
+    });
+  }
+});
+
+test("every index route exposes persistent identity and close navigation with one page heading", async () => {
+  await withPage({ width: 390, height: 844 }, async (page) => {
+    for (const hash of ["#/works", "#/profile", "#/archive/ai", "#/archive/btl"]) {
+      await page.goto(`${url}${hash}`);
+      await page.waitForSelector(".index-view");
+      assert.equal(await page.locator(".index-nav__identity").getAttribute("href"), "#/");
+      assert.equal(await page.locator(".index-nav__close").getAttribute("href"), "#/");
+      assert.equal(await page.locator(".index-view h1").count(), 1);
+      assert.equal(await page.locator(".index-nav").isVisible(), true);
+      assert.equal(await page.locator(".index-view").getAttribute("tabindex"), "-1");
+    }
+  });
+});

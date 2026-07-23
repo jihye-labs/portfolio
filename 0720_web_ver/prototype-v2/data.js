@@ -313,9 +313,33 @@ const btlArchive = [
 }));
 
 const profile = {
-  brand: "Samsung, Lenovo, Hurom, retail POP, exhibition, and field execution.",
-  space: "KD Navien, Samsung Display, showroom, visitor journey, and experience space.",
-  ai: "Campaign direction, visual systems, research, and content acceleration.",
+  intro: "Brand, space, BTL, and operations experience accumulated across Korea, China, and Japan. AI now expands that practical foundation into faster research, broader visual exploration, and new campaign possibilities.",
+  stages: [
+    {
+      period: "2025–Now",
+      title: "Brand Content & AI Strategy",
+      place: "Independent / Gallery Flowers",
+      description: "Connecting brand operation, content direction, web structure, and AI-assisted campaign development.",
+    },
+    {
+      period: "2016–2020",
+      title: "BTL & Brand Experience",
+      place: "Supa Decoration Design, Beijing",
+      description: "Leading exhibitions, retail POP, SI systems, and field execution for Samsung, KD Navien, Lenovo, Hurom, and other brands.",
+    },
+    {
+      period: "2010–2016",
+      title: "Service & Space Business Planning",
+      place: "Daelim B&Co / Japan Business",
+      description: "Planning service flows, product and space businesses, and cross-border projects from research through delivery.",
+    },
+    {
+      period: "2005–2010",
+      title: "Architecture & Technical Coordination",
+      place: "SAI Architectural Planning",
+      description: "Building an architectural foundation through design participation and technical coordination across Korea and Japan.",
+    },
+  ],
 };
 const portfolioData = { categories, projects, aiArchive, btlArchive, imageSets, profile };
 
