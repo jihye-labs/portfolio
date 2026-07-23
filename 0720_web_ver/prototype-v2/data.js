@@ -52,7 +52,7 @@ const categories = [
     label: "AI+",
     hero: imageSet("hero-ai"),
     entries: [
-      entry("elora", "AI perfume campaign film"),
+      entry("elora", "AI perfume campaign film", "", "elora-keyvisual"),
       entry("genz-glitch", "AI beauty brand concept"),
       entry("alldayfit", "OEM business review / lookbook"),
       entry("market-marble", "AI editorial market concept"),

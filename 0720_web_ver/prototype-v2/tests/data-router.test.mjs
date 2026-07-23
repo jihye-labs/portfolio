@@ -27,7 +27,11 @@ test("KD Navien keeps one project record with two entry chapters", () => {
 });
 
 test("ELORA uses the campaign key visual and every image set reserves dimensions", () => {
+  const eloraEntry = data.categories
+    .find(({ id }) => id === "ai")
+    .entries.find(({ slug }) => slug === "elora");
   assert.equal(data.projects.elora.image, data.imageSets["elora-keyvisual"]);
+  assert.equal(eloraEntry.previewKey, "elora-keyvisual");
   assert.equal(data.imageSets["elora-keyvisual"].width, 1280);
   assert.equal(data.imageSets["elora-keyvisual"].height, 720);
 
