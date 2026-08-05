@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>JIHYE.SPACE - Branding / AI / Space BTL</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./view-styles.css" />
+    <link rel="preload" as="image" href="./assets/optimized/hero-branding-1280.webp" type="image/webp" />
+    <link rel="preload" as="image" href="./assets/optimized/hero-ai-1280.webp" type="image/webp" />
+    <link rel="preload" as="image" href="./assets/optimized/hero-space-1280.webp" type="image/webp" />
+    <script src="./assets/optimized/asset-meta.js" defer></script>
+    <script src="./data.js" defer></script>
+    <script src="./router.js" defer></script>
+    <script src="./state.js" defer></script>
+    <script src="./locale.js" defer></script>
+    <script src="./home.js" defer></script>
+    <script src="./views.js" defer></script>
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <section class="hero" aria-label="LEE JIHYE portfolio categories">
+        <header class="top-nav">
+          <a class="identity" href="#top" aria-label="JIHYE.SPACE home">JIHYE.SPACE</a>
+          <nav class="nav-actions" aria-label="Portfolio navigation">
+            <a href="#/works">ALL WORKS <span aria-hidden="true">↗</span></a>
+            <a href="mailto:leejihye210@gmail.com">CONTACT <span aria-hidden="true">↗</span></a>
+          </nav>
+        </header>
+
+        <div class="split-door" data-split-door data-active="" id="top">
+          <article class="door-panel branding-panel" data-panel="branding">
+            <img
+              class="panel-image"
+              src="./assets/optimized/hero-branding-1280.webp"
+              srcset="./assets/optimized/hero-branding-480.webp 480w, ./assets/optimized/hero-branding-1280.webp 1280w"
+              sizes="(max-width: 920px) 100vw, 46vw"
+              alt="Sculptural branding materials on a vermilion studio set"
+              width="1024"
+              height="1536"
+              decoding="async"
+            />
+            <div class="panel-tone" aria-hidden="true"></div>
+            <button class="panel-trigger" type="button" data-panel-trigger aria-expanded="false" aria-controls="project-list-branding">
+              <span class="panel-index">01</span>
+              <span class="panel-title">BRANDING<span aria-hidden="true">+</span></span>
+            </button>
+            <div class="project-preview" aria-hidden="true">
+              <img data-project-preview alt="" width="1280" height="854" loading="lazy" decoding="async" />
+            </div>
+            <nav id="project-list-branding" class="project-strip" data-project-list aria-label="Branding selected works" hidden inert></nav>
+          </article>
+
+          <article class="door-panel ai-panel" data-panel="ai">
+            <img
+              class="panel-image"
+              src="./assets/optimized/hero-ai-1280.webp"
+              srcset="./assets/optimized/hero-ai-480.webp 480w, ./assets/optimized/hero-ai-1280.webp 1280w"
+              sizes="(max-width: 920px) 100vw, 46vw"
+              alt="Transparent glass flower sculpture with delicate circuit traces on an indigo studio set"
+              width="1024"
+              height="1536"
+              decoding="async"
+            />
+            <div class="panel-tone" aria-hidden="true"></div>
+            <button class="panel-trigger" type="button" data-panel-trigger aria-expanded="false" aria-controls="project-list-ai">
+              <span class="panel-index">02</span>
+              <span class="panel-title">AI<span aria-hidden="true">+</span></span>
+            </button>
+            <div class="project-preview" aria-hidden="true">
+              <img data-project-preview alt="" width="1280" height="854" loading="lazy" decoding="async" />
+            </div>
+            <nav id="project-list-ai" class="project-strip" data-project-list aria-label="AI selected works" hidden inert></nav>
+          </article>
+
+          <article class="door-panel space-panel" data-panel="space">
+            <img
+              class="panel-image"
+              src="./assets/optimized/hero-space-1280.webp"
+              srcset="./assets/optimized/hero-space-480.webp 480w, ./assets/optimized/hero-space-1280.webp 1280w"
+              sizes="(max-width: 920px) 100vw, 46vw"
+              alt="Modular exhibition pavilion on an ultramarine studio set"
+              width="1024"
+              height="1536"
+              decoding="async"
+            />
+            <div class="panel-tone" aria-hidden="true"></div>
+            <button class="panel-trigger" type="button" data-panel-trigger aria-expanded="false" aria-controls="project-list-space">
+              <span class="panel-index">03</span>
+              <span class="panel-title">SPACE BTL<span aria-hidden="true">+</span></span>
+            </button>
+            <div class="project-preview" aria-hidden="true">
+              <img data-project-preview alt="" width="1280" height="854" loading="lazy" decoding="async" />
+            </div>
+            <nav id="project-list-space" class="project-strip" data-project-list aria-label="Space BTL selected works" hidden inert></nav>
+          </article>
+        </div>
+      </section>
+
+      <section class="route-view" data-route-view hidden tabindex="-1"></section>
+    </main>
+  </body>
+</html>
