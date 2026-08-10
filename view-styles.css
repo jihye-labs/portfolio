@@ -1352,6 +1352,436 @@ html.is-route-transitioning body[data-view="work"] .case-hero-media {
   transform: translate(7px, -7px);
 }
 
+.case-view--mode-alldayfit {
+  --adf-bg: #17171a;
+  --adf-bg-deep: #101012;
+  --adf-surface: #1e1e22;
+  --adf-surface-2: #262629;
+  --adf-line: rgba(255, 255, 255, 0.1);
+  --adf-line-soft: rgba(255, 255, 255, 0.055);
+  --adf-ink: #f3f0ec;
+  --adf-muted: #a09da6;
+  --adf-faint: #615e68;
+  --adf-accent: #a78bfa;
+  --adf-accent-glow: rgba(167, 139, 250, 0.17);
+  background: var(--adf-bg);
+  color: var(--adf-ink);
+}
+
+.case-view--mode-alldayfit .case-nav {
+  background: rgba(16, 16, 18, 0.88);
+  border-color: var(--adf-line);
+  color: var(--adf-ink);
+  backdrop-filter: blur(18px);
+}
+
+.case-view--mode-alldayfit .case-nav__context,
+.case-view--mode-alldayfit .case-nav a {
+  color: var(--adf-ink);
+}
+
+.case-view--mode-alldayfit .case-nav__close span {
+  background: var(--adf-ink);
+}
+
+.alldayfit-case {
+  overflow: hidden;
+  background: var(--adf-bg);
+  color: var(--adf-ink);
+  font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.alldayfit-case img {
+  display: block;
+  max-width: 100%;
+}
+
+.alldayfit-container {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+}
+
+.alldayfit-container--narrow {
+  width: min(760px, calc(100% - 64px));
+}
+
+.alldayfit-eyebrow {
+  margin: 0 0 16px;
+  color: var(--adf-accent);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.alldayfit-hero {
+  position: relative;
+  min-height: 100svh;
+  padding: clamp(108px, 12vw, 160px) 0 70px;
+  display: grid;
+  align-items: center;
+  background:
+    radial-gradient(ellipse 820px 480px at 14% 10%, var(--adf-accent-glow), transparent 62%),
+    var(--adf-bg-deep);
+}
+
+.alldayfit-hero__inner {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+}
+
+.alldayfit-hero__grid {
+  display: grid;
+  grid-template-columns: 1.5fr minmax(280px, 0.92fr);
+  align-items: end;
+  gap: clamp(28px, 4vw, 48px);
+  margin-bottom: 42px;
+}
+
+.alldayfit-hero h1 {
+  margin: 0;
+  color: var(--adf-ink);
+  font-family: Inter, Pretendard, sans-serif;
+  font-size: clamp(5.2rem, 12vw, 10.8rem);
+  font-weight: 850;
+  letter-spacing: -0.055em;
+  line-height: 0.82;
+  text-transform: uppercase;
+}
+
+.alldayfit-hero h1 span {
+  display: block;
+}
+
+.alldayfit-hero h1 b {
+  color: var(--adf-accent);
+  font-style: normal;
+}
+
+.alldayfit-hero__photo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  border: 1px solid var(--adf-line);
+  border-radius: 4px;
+  background: var(--adf-surface);
+  box-shadow: 0 34px 70px -24px rgba(0, 0, 0, 0.66);
+}
+
+.alldayfit-hero__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.96) contrast(1.04);
+}
+
+.alldayfit-hero__photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(16, 16, 18, 0.58));
+  pointer-events: none;
+}
+
+.alldayfit-hero__sub {
+  margin: 0 0 12px;
+  color: var(--adf-ink);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  font-weight: 700;
+}
+
+.alldayfit-hero__desc,
+.alldayfit-body-lg {
+  max-width: 690px;
+  margin: 0;
+  color: var(--adf-muted);
+  font-size: clamp(1rem, 1.4vw, 1.13rem);
+  line-height: 1.82;
+}
+
+.alldayfit-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  max-width: 760px;
+  margin: 46px 0 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--adf-line);
+  background: var(--adf-line);
+}
+
+.alldayfit-meta div {
+  min-height: 128px;
+  padding: 20px;
+  background: var(--adf-bg-deep);
+}
+
+.alldayfit-meta dt {
+  margin-bottom: 12px;
+  color: var(--adf-faint);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.alldayfit-meta dd {
+  margin: 0;
+  color: var(--adf-ink);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.alldayfit-dotnav {
+  position: fixed;
+  z-index: 42;
+  top: 50%;
+  right: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  transform: translateY(-50%);
+}
+
+.alldayfit-dotnav a {
+  position: relative;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  text-decoration: none;
+}
+
+.alldayfit-dotnav span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--adf-faint);
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.alldayfit-dotnav a:hover span {
+  background: var(--adf-accent);
+  box-shadow: 0 0 0 5px var(--adf-accent-glow);
+}
+
+.alldayfit-dotnav a::before {
+  content: attr(data-label);
+  position: absolute;
+  top: 50%;
+  right: 28px;
+  width: max-content;
+  color: var(--adf-muted);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 180ms ease;
+}
+
+.alldayfit-dotnav a:hover::before {
+  opacity: 1;
+}
+
+.alldayfit-context,
+.alldayfit-part,
+.alldayfit-lookbook,
+.alldayfit-reflection {
+  border-top: 1px solid var(--adf-line-soft);
+}
+
+.alldayfit-context,
+.alldayfit-reflection {
+  padding: clamp(96px, 10vw, 150px) 0;
+}
+
+.alldayfit-context h2,
+.alldayfit-part h2,
+.alldayfit-lookbook h2,
+.alldayfit-reflection h2 {
+  margin: 0 0 24px;
+  color: var(--adf-ink);
+  font-size: clamp(2rem, 4.6vw, 3.45rem);
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  line-height: 1.03;
+}
+
+.alldayfit-pull {
+  max-width: 760px;
+  margin: 42px 0 0;
+  color: var(--adf-ink);
+  font-size: clamp(1.35rem, 2.8vw, 2.15rem);
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  line-height: 1.45;
+}
+
+.alldayfit-pull--accent {
+  padding-left: 26px;
+  border-left: 2px solid var(--adf-accent);
+}
+
+.alldayfit-part {
+  position: relative;
+  padding: clamp(105px, 12vw, 165px) 0;
+}
+
+.alldayfit-part--alt {
+  background: var(--adf-surface);
+}
+
+.alldayfit-watermark {
+  position: absolute;
+  top: 34px;
+  right: -0.05em;
+  z-index: 0;
+  color: transparent;
+  font-size: clamp(9rem, 24vw, 21rem);
+  font-weight: 850;
+  line-height: 0.85;
+  -webkit-text-stroke: 1px var(--adf-line);
+  pointer-events: none;
+  user-select: none;
+}
+
+.alldayfit-part .alldayfit-container {
+  position: relative;
+  z-index: 1;
+}
+
+.alldayfit-text {
+  max-width: 680px;
+  margin-top: 28px;
+}
+
+.alldayfit-text p {
+  margin: 0 0 22px;
+  color: var(--adf-muted);
+  font-size: clamp(1rem, 1.25vw, 1.06rem);
+  line-height: 1.9;
+}
+
+.alldayfit-text p:last-child {
+  margin-bottom: 0;
+}
+
+.alldayfit-slide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 58px;
+}
+
+.alldayfit-slide {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--adf-line);
+  border-radius: 4px;
+  background: var(--adf-surface-2);
+}
+
+.alldayfit-slide img {
+  width: 100%;
+}
+
+.alldayfit-slide figcaption,
+.alldayfit-look-card figcaption {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--adf-line);
+  color: var(--adf-muted);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.035em;
+}
+
+.alldayfit-slide figcaption span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--adf-accent);
+}
+
+.alldayfit-gtm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
+  gap: clamp(34px, 5vw, 62px);
+  align-items: start;
+}
+
+.alldayfit-slide--persona,
+.alldayfit-slide--amos {
+  max-width: 560px;
+}
+
+.alldayfit-slide--amos {
+  margin: 50px 0;
+}
+
+.alldayfit-lookbook {
+  padding: clamp(105px, 12vw, 160px) 0 100px;
+}
+
+.alldayfit-carousel {
+  display: flex;
+  gap: 22px;
+  width: 100%;
+  margin-top: 58px;
+  padding: 4px clamp(24px, 5vw, 64px) 24px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--adf-faint) transparent;
+}
+
+.alldayfit-look-card {
+  flex: 0 0 min(340px, 78vw);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--adf-line);
+  border-radius: 4px;
+  background: var(--adf-surface-2);
+  scroll-snap-align: start;
+}
+
+.alldayfit-look-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.alldayfit-look-card figcaption span {
+  color: var(--adf-accent);
+}
+
+.case-view--mode-alldayfit .case-pagination {
+  background: var(--adf-surface);
+  border-color: var(--adf-line);
+}
+
+.case-view--mode-alldayfit .case-pagination a {
+  color: var(--adf-ink);
+}
+
+.case-view--mode-alldayfit .case-pagination a + a {
+  border-color: var(--adf-line);
+}
+
+.case-view--mode-alldayfit .case-pagination span {
+  color: var(--adf-muted);
+}
+
+.case-view--mode-alldayfit .case-pagination a:nth-child(2) {
+  color: var(--adf-accent);
+}
+
 .case-pagination {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2937,6 +3367,87 @@ html.is-route-transitioning body[data-view="work"] .case-hero-media {
     grid-template-columns: 1fr;
     gap: 36px;
     margin-top: 42px;
+  }
+}
+
+@media (max-width: 900px) {
+  .alldayfit-dotnav {
+    display: none;
+  }
+
+  .alldayfit-hero__grid,
+  .alldayfit-gtm,
+  .alldayfit-slide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alldayfit-hero__photo {
+    width: min(420px, 100%);
+  }
+
+  .alldayfit-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .alldayfit-container,
+  .alldayfit-container--narrow,
+  .alldayfit-hero__inner {
+    width: calc(100% - 40px);
+  }
+
+  .alldayfit-hero {
+    min-height: 0;
+    padding: 98px 0 64px;
+  }
+
+  .alldayfit-hero h1 {
+    font-size: clamp(4.4rem, 24vw, 6.7rem);
+  }
+
+  .alldayfit-hero__grid {
+    gap: 28px;
+    margin-bottom: 34px;
+  }
+
+  .alldayfit-hero__photo {
+    aspect-ratio: 4 / 5;
+  }
+
+  .alldayfit-meta {
+    grid-template-columns: 1fr;
+    margin-top: 34px;
+  }
+
+  .alldayfit-meta div {
+    min-height: 0;
+  }
+
+  .alldayfit-context,
+  .alldayfit-part,
+  .alldayfit-lookbook,
+  .alldayfit-reflection {
+    padding-top: 78px;
+    padding-bottom: 86px;
+  }
+
+  .alldayfit-watermark {
+    top: 18px;
+    font-size: 9rem;
+  }
+
+  .alldayfit-pull {
+    margin-top: 32px;
+  }
+
+  .alldayfit-pull--accent {
+    padding-left: 18px;
+  }
+
+  .alldayfit-carousel {
+    margin-top: 42px;
+    padding: 4px 20px 22px;
   }
 }
 
