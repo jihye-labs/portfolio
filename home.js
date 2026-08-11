@@ -67,7 +67,11 @@ function createHomeController(root) {
     if (options.preserveTouchArm !== true) resetTouchArm();
     selectedSlug = item.slug;
     preview.src = image.src;
-    preview.srcset = image.srcset;
+    if (image.srcset) {
+      preview.srcset = image.srcset;
+    } else {
+      preview.removeAttribute("srcset");
+    }
     preview.width = image.width;
     preview.height = image.height;
     preview.style.objectFit = item.preview?.fit || "contain";

@@ -1,16 +1,25 @@
-# JIHYE.SPACE Portfolio
+# JIHYE.SPACE Portfolio Prototype
 
-Static portfolio site for GitHub Pages.
+Static portfolio build prepared from `prototype-v2`.
 
-This folder contains only deployable runtime files and optimized web assets.
+## Files
+- `index.html`
+- `styles.css`
+- `view-styles.css`
+- Runtime scripts: `data.js`, `home.js`, `locale.js`, `router.js`, `script.js`, `state.js`, `views.js`
+- `assets/`
+- `.nojekyll`
 
-## Local Preview
+## GitHub Pages
+Push this folder as the repository root, or copy its contents into the root of the GitHub Pages repository.
+
+Open locally:
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Open:
+Then visit:
 
 ```text
 http://localhost:8080

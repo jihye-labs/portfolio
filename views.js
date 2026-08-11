@@ -120,6 +120,49 @@
     </figure>`;
   }
 
+  function evidenceCard(item, index) {
+    const [key, alt, caption, position = "50% 50%"] = item;
+    const image = window.PORTFOLIO_DATA.imageSets[key];
+    const ratio = image.width / image.height;
+    const modifier = image.height > image.width * 3
+      ? "strip"
+      : ratio > 1.55
+        ? "wide"
+        : ratio < 0.85
+          ? "tall"
+          : "standard";
+    return `<figure class="grouped-evidence-card grouped-evidence-card--${modifier}">
+      ${picture(image, alt, "grouped-evidence-card__media", position)}
+      <figcaption><span>${String(index + 1).padStart(2, "0")}</span>${escapeHTML(caption)}</figcaption>
+    </figure>`;
+  }
+
+  function renderEvidenceGroups(project) {
+    const groups = project.evidenceGroups.map((group) => {
+      const items = group.items
+        .map((item, itemIndex) => evidenceCard(item, itemIndex))
+        .join("");
+      return `<section class="grouped-evidence-section">
+        <header>
+          <p>${escapeHTML(group.eyebrow)}</p>
+          <div>
+            <h2>${escapeHTML(group.title)}</h2>
+            <span>${escapeHTML(group.description)}</span>
+          </div>
+        </header>
+        <div class="grouped-evidence-grid">${items}</div>
+      </section>`;
+    }).join("");
+    const total = project.evidenceGroups.reduce((sum, group) => sum + group.items.length, 0);
+    return `<section class="case-evidence case-evidence--grouped" aria-label="Selected outputs">
+      <header class="case-section-heading">
+        <p>SELECTED OUTPUTS</p>
+        <span>${String(total).padStart(2, "0")} PROOFS / GROUPED</span>
+      </header>
+      ${groups}
+    </section>`;
+  }
+
   function galleryPair(english, korean, className = "") {
     return `<div class="gallery-pair ${escapeHTML(className)}">
       <p class="gallery-pair__en">${escapeHTML(english)}</p>
@@ -602,7 +645,7 @@
             countLabel: "PDF PAGES",
             className: "case-pdf-evidence--samsung",
             ariaLabel: "Samsung Display EBC project record",
-          }) : `<section class="case-evidence" aria-label="Selected outputs">
+          }) : project.evidenceGroups ? renderEvidenceGroups(project) : `<section class="case-evidence" aria-label="Selected outputs">
             <header class="case-section-heading">
               <p>SELECTED OUTPUTS</p>
               <span>${String(project.proofs.length).padStart(2, "0")} PROOFS</span>
@@ -723,13 +766,6 @@
           <b aria-hidden="true">↗</b>
         </a>`;
       }
-      if (category.id === "space" && !category.entries.some((item) => item.kind === "archive")) {
-        archive = `<a class="works-archive-link" href="#/archive/btl">
-          <span>FIELD CAPABILITY</span>
-          <strong>BTL Archive</strong>
-          <b aria-hidden="true">↗</b>
-        </a>`;
-      }
       return `<section class="works-group works-group--${escapeHTML(category.id)}">
         <header class="works-group__header">
           <p>${String(window.PORTFOLIO_DATA.categories.indexOf(category) + 1).padStart(2, "0")}</p>
@@ -777,25 +813,20 @@
 
   function renderAIArchive() {
     const cards = window.PORTFOLIO_DATA.aiArchive.map((item, index) => {
-      const href = safeExternalURL(item.url);
+      const isVideo = item.type === "VIDEO" && item.video;
+      const href = isVideo ? "" : safeExternalURL(item.url);
       const number = item.number || String(index + 1).padStart(2, "0");
       const tags = (item.tags || []).slice(0, 4).map((tag) => (
         `<span>${escapeHTML(tag)}</span>`
       )).join("");
-      return `<a
-        class="ai-work-card ai-work-card--${escapeHTML(item.tone || "study")}"
-        href="${escapeHTML(href)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="--card-accent:${escapeHTML(item.accent || "#7fffe0")}"
-      >
+      const content = `
         <div class="ai-work-card__topline">
           <span class="ai-work-card__number">${escapeHTML(number)}</span>
           <span class="ai-work-card__type">${escapeHTML(item.type || "WEB")}</span>
         </div>
         <div class="ai-work-card__media">
           ${looseImage(item.screenshot, `${item.title} preview`, "ai-work-card__image", item.imagePosition || "50% 50%", true)}
-          <span class="ai-work-card__open">${item.type === "YOUTUBE" ? "PLAY" : "OPEN"} ↗</span>
+          <span class="ai-work-card__open">${isVideo ? "PLAY VIDEO" : item.type === "YOUTUBE" ? "PLAY" : "OPEN PROJECT"} ↗</span>
         </div>
         <div class="ai-work-card__body">
           <p>${escapeHTML(item.category)}</p>
@@ -803,8 +834,25 @@
           <em>${escapeHTML(item.description)}</em>
           <div class="ai-work-card__tags">${tags}</div>
         </div>
-        <strong class="ai-work-card__word">${escapeHTML(item.visualWord || "AI Campaign Study")}</strong>
-      </a>`;
+        <strong class="ai-work-card__word">${escapeHTML(item.visualWord || "AI Campaign Study")}</strong>`;
+      if (isVideo) {
+        return `<button
+          class="ai-work-card ai-work-card--video ai-work-card--${escapeHTML(item.tone || "study")}"
+          type="button"
+          data-video-src="${escapeHTML(item.video)}"
+          data-video-poster="${escapeHTML(item.screenshot)}"
+          data-video-title="${escapeHTML(item.title)}"
+          data-video-orientation="${escapeHTML(item.videoOrientation || "landscape")}"
+          style="--card-accent:${escapeHTML(item.accent || "#7fffe0")}"
+        >${content}</button>`;
+      }
+      return `<a
+        class="ai-work-card ai-work-card--${escapeHTML(item.tone || "study")}"
+        href="${escapeHTML(href)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="--card-accent:${escapeHTML(item.accent || "#7fffe0")}"
+      >${content}</a>`;
     }).join("");
     return `<article class="index-view archive-view archive-view--ai" tabindex="-1">
       <nav class="ai-launcher-nav" aria-label="AI archive navigation">
@@ -815,12 +863,20 @@
         <div>
           <p>AI+ / CAMPAIGN STUDIES</p>
           <h1>AI Campaign Archive</h1>
+          <span class="ai-launcher-hero__intro">각 PROJECT를 클릭하면 웹, 영상, 아카이브가 열립니다.</span>
         </div>
-        <span>카드 전체를 클릭하면 각 라이브 웹, 영상, 아카이브가 새 탭으로 바로 열립니다.</span>
       </header>
       <section class="ai-work-grid" aria-label="AI campaign cards">
         ${cards}
       </section>
+      <div class="ai-video-modal" data-ai-video-modal hidden>
+        <div class="ai-video-modal__backdrop" data-ai-video-close></div>
+        <div class="ai-video-modal__dialog" role="dialog" aria-modal="true" aria-label="AI video preview">
+          <button class="ai-video-modal__close" type="button" data-ai-video-close aria-label="Close video">×</button>
+          <p class="ai-video-modal__title" data-ai-video-title></p>
+          <video class="ai-video-modal__player" data-ai-video-player controls playsinline preload="metadata"></video>
+        </div>
+      </div>
     </article>`;
   }
 
