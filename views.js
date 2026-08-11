@@ -121,16 +121,16 @@
   }
 
   function evidenceCard(item, index) {
-    const [key, alt, caption, position = "50% 50%"] = item;
+    const [key, alt, caption, position = "50% 50%", modifierOverride = ""] = item;
     const image = window.PORTFOLIO_DATA.imageSets[key];
     const ratio = image.width / image.height;
-    const modifier = image.height > image.width * 3
+    const modifier = modifierOverride || (image.height > image.width * 3
       ? "strip"
       : ratio > 1.55
         ? "wide"
         : ratio < 0.85
           ? "tall"
-          : "standard";
+          : "standard");
     return `<figure class="grouped-evidence-card grouped-evidence-card--${modifier}">
       ${picture(image, alt, "grouped-evidence-card__media", position)}
       <figcaption><span>${String(index + 1).padStart(2, "0")}</span>${escapeHTML(caption)}</figcaption>
@@ -142,7 +142,8 @@
       const items = group.items
         .map((item, itemIndex) => evidenceCard(item, itemIndex))
         .join("");
-      return `<section class="grouped-evidence-section">
+      const layoutAttribute = group.layout ? ` data-layout="${escapeHTML(group.layout)}"` : "";
+      return `<section class="grouped-evidence-section"${layoutAttribute}>
         <header>
           <p>${escapeHTML(group.eyebrow)}</p>
           <div>
