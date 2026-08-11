@@ -16,6 +16,10 @@
     "width": 1280,
     "height": 853
   },
+  "gallery-flowers-hero": {
+    "width": 1280,
+    "height": 853
+  },
   "kd-navien-brand": {
     "width": 780,
     "height": 1002
@@ -35,6 +39,14 @@
   "elora-keyvisual": {
     "width": 1280,
     "height": 720
+  },
+  "nike-study": {
+    "width": 1280,
+    "height": 718
+  },
+  "ai-archive-main": {
+    "width": 1280,
+    "height": 714
   },
   "genz-glitch": {
     "width": 1280,

@@ -103,6 +103,67 @@
     getRouteContext,
   });
 
+  function initAIArchiveVideoModal() {
+    const modal = routeView.querySelector("[data-ai-video-modal]");
+    if (!modal) return;
+    if (routeView.dataset.aiVideoModalBound === "true") return;
+    routeView.dataset.aiVideoModalBound = "true";
+
+    let lastTrigger = null;
+
+    const closeModal = () => {
+      const activeModal = routeView.querySelector("[data-ai-video-modal]");
+      if (!activeModal) return;
+      const activePlayer = activeModal.querySelector("[data-ai-video-player]");
+      const activeDialog = activeModal.querySelector(".ai-video-modal__dialog");
+      activePlayer.pause();
+      activePlayer.removeAttribute("src");
+      activePlayer.removeAttribute("poster");
+      activePlayer.load();
+      activeModal.hidden = true;
+      activeModal.classList.remove("is-open");
+      activeDialog.dataset.orientation = "";
+      if (lastTrigger) lastTrigger.focus({ preventScroll: true });
+    };
+
+    const openModal = (trigger) => {
+      const activeModal = routeView.querySelector("[data-ai-video-modal]");
+      if (!activeModal) return;
+      const activePlayer = activeModal.querySelector("[data-ai-video-player]");
+      const activeTitle = activeModal.querySelector("[data-ai-video-title]");
+      const activeDialog = activeModal.querySelector(".ai-video-modal__dialog");
+
+      lastTrigger = trigger;
+      activeTitle.textContent = trigger.dataset.videoTitle || "";
+      activeDialog.dataset.orientation = trigger.dataset.videoOrientation || "landscape";
+      activePlayer.src = trigger.dataset.videoSrc;
+      activePlayer.poster = trigger.dataset.videoPoster || "";
+      activePlayer.muted = false;
+      activeModal.hidden = false;
+      activeModal.classList.add("is-open");
+      activePlayer.play().catch(() => {});
+    };
+
+    routeView.addEventListener("click", (event) => {
+      const trigger = event.target.closest("[data-video-src]");
+      if (!trigger || !routeView.contains(trigger)) return;
+      openModal(trigger);
+    });
+
+    routeView.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-ai-video-close]")) return;
+      event.preventDefault();
+      closeModal();
+    });
+
+    routeView.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const activeModal = routeView.querySelector("[data-ai-video-modal]");
+      if (!activeModal || activeModal.hidden) return;
+      closeModal();
+    });
+  }
+
   function changeDOM(callback, { sharedHero = false } = {}) {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reduced && document.startViewTransition) {
@@ -148,6 +209,7 @@
       routeView.hidden = false;
       routeView.innerHTML = "";
       window.PortfolioViews.render(route, routeView);
+      initAIArchiveVideoModal();
       routeView.focus({ preventScroll: true });
       window.scrollTo(0, 0);
       document.body.dataset.view = route.name;
@@ -182,5 +244,8 @@
   });
 
   window.addEventListener("hashchange", renderRoute);
+  window.addEventListener("portfolio-locale-change", () => {
+    if (document.body.dataset.view !== "home") renderRoute();
+  });
   renderRoute();
 })();

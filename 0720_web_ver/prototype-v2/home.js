@@ -4,6 +4,7 @@ function createHomeController(root) {
   let activeCategory = "";
   let selectedSlug = "";
   let activationTimer = 0;
+  let leaveTimer = 0;
   let touchArmedSlug = "";
   let touchArmedCategory = "";
   let suppressFocusActivation = false;
@@ -15,6 +16,20 @@ function createHomeController(root) {
   function cancelActivation() {
     clearTimeout(activationTimer);
     activationTimer = 0;
+  }
+
+  function cancelLeave() {
+    clearTimeout(leaveTimer);
+    leaveTimer = 0;
+  }
+
+  function scheduleCollapse() {
+    cancelLeave();
+    if (!activeCategory) return;
+    leaveTimer = setTimeout(() => {
+      leaveTimer = 0;
+      collapseCategory();
+    }, 280);
   }
 
   function resetTouchArm() {
@@ -32,14 +47,16 @@ function createHomeController(root) {
 
     const rows = category.entries.map((item, index) => {
       const project = window.PORTFOLIO_DATA.projects[item.slug];
-      const route = { name: "work", slug: item.slug };
+      const title = item.title || project?.title || item.slug;
+      const route = item.kind === "archive"
+        ? { name: item.routeName || "brand-archive" }
+        : { name: "work", slug: item.slug };
       if (item.chapter) route.chapter = item.chapter;
-      return `<a id="project-${category.id}-${item.slug}" data-project-row data-slug="${item.slug}" data-preview-key="${item.previewKey}" href="${window.PortfolioRouter.toHash(route)}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${project.title}</strong><em>${item.role}</em><b data-open-project aria-hidden="true">↗</b></a>`;
+      const href = item.kind === "external" ? item.externalUrl : window.PortfolioRouter.toHash(route);
+      const external = item.kind === "external" ? ' target="_blank" rel="noopener noreferrer"' : "";
+      return `<a id="project-${category.id}-${item.slug}" data-project-row data-slug="${item.slug}" data-preview-key="${item.previewKey}" href="${href}"${external}><span>${String(index + 1).padStart(2, "0")}</span><strong>${title}</strong><em>${item.role}</em><b data-open-project aria-hidden="true">↗</b></a>`;
     }).join("");
-    const archive = category.id === "ai"
-      ? '<a class="strip-archive-link" href="#/archive/ai">AI CAMPAIGN ARCHIVE <b aria-hidden="true">↗</b></a>'
-      : "";
-    list.innerHTML = rows + archive;
+    list.innerHTML = rows;
   }
 
   function selectProject(panel, slug, options = {}) {
@@ -50,7 +67,15 @@ function createHomeController(root) {
     if (options.preserveTouchArm !== true) resetTouchArm();
     selectedSlug = item.slug;
     preview.src = image.src;
-    preview.srcset = image.srcset;
+    if (image.srcset) {
+      preview.srcset = image.srcset;
+    } else {
+      preview.removeAttribute("srcset");
+    }
+    preview.width = image.width;
+    preview.height = image.height;
+    preview.style.objectFit = item.preview?.fit || "contain";
+    preview.style.objectPosition = item.preview?.position || "50% 50%";
     panel.querySelectorAll("[data-project-row]").forEach((row) => {
       row.classList.toggle("is-selected", row.dataset.slug === selectedSlug);
       row.setAttribute("aria-current", row.dataset.slug === selectedSlug ? "true" : "false");
@@ -59,6 +84,7 @@ function createHomeController(root) {
 
   function activateCategory(id, preferredSlug = "", options = {}) {
     cancelActivation();
+    cancelLeave();
     if (activeCategory !== id) resetTouchArm();
     activeCategory = id;
     root.dataset.active = id;
@@ -91,6 +117,7 @@ function createHomeController(root) {
   function collapseCategory() {
     const previousCategory = activeCategory;
     cancelActivation();
+    cancelLeave();
     resetTouchArm();
     activeCategory = "";
     selectedSlug = "";
@@ -145,6 +172,7 @@ function createHomeController(root) {
 
     panel.addEventListener("pointerenter", (event) => {
       if (event.pointerType === "touch") return;
+      cancelLeave();
       cancelActivation();
       activationTimer = setTimeout(() => {
         activationTimer = 0;
@@ -195,7 +223,11 @@ function createHomeController(root) {
     });
   });
 
-  root.addEventListener("pointerleave", cancelActivation);
+  root.addEventListener("pointerenter", cancelLeave);
+  root.addEventListener("pointerleave", () => {
+    cancelActivation();
+    scheduleCollapse();
+  });
   document.querySelector(".nav-actions")?.addEventListener("click", saveHomeState);
   document.addEventListener("keydown", (event) => {
     if (

@@ -22,6 +22,16 @@ test("ELORA key visual belongs to the deterministic asset contract", () => {
   assert.equal(path.basename(sources["elora-keyvisual"]), "elora-keyvisual.jpg");
 });
 
+test("NIKE visual study uses the approved main screenshot source", () => {
+  assert.ok(sources["nike-study"]);
+  assert.equal(path.basename(sources["nike-study"]), "nike-visual-study-main.png");
+});
+
+test("AI Campaign Archive home preview uses the approved screenshot source", () => {
+  assert.ok(sources["ai-archive-main"]);
+  assert.equal(path.basename(sources["ai-archive-main"]), "ai-campaign-archive-main.png");
+});
+
 test("optimized directory contains exactly the manifest output set", async () => {
   assert.deepEqual((await readdir(outputDir)).sort(), expectedFilenames);
 });

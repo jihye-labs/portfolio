@@ -5,7 +5,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
-const { chromium } = require("playwright");
+const { chromium } = require("/Users/jihyelee/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 const root = path.resolve("prototype-v2");
 const url = pathToFileURL(path.join(root, "index.html")).href;
 const output = path.join(root, "captures");
@@ -112,6 +112,8 @@ try {
   for (const setup of [
     { name: "home-desktop", viewport: { width: 1440, height: 900 }, route: "#/" },
     { name: "home-mobile", viewport: { width: 390, height: 844 }, route: "#/" },
+    { name: "works-desktop", viewport: { width: 1440, height: 900 }, route: "#/works" },
+    { name: "brand-archive-desktop", viewport: { width: 1440, height: 900 }, route: "#/archive/brand" },
     { name: "detail-desktop", viewport: { width: 1440, height: 900 }, route: "#/work/elora" },
     { name: "detail-mobile", viewport: { width: 390, height: 844 }, route: "#/work/elora" },
   ]) {

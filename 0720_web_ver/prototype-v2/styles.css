@@ -79,7 +79,31 @@ button {
 
 .nav-actions {
   display: flex;
+  align-items: center;
   gap: clamp(20px, 2.8vw, 44px);
+}
+
+.top-nav .locale-switch {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.top-nav .locale-switch button {
+  padding: 6px 3px;
+  background: transparent;
+  color: rgba(255, 248, 234, 0.76);
+  cursor: pointer;
+  font-size: 0.64rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.top-nav .locale-switch button[aria-pressed="true"] {
+  color: var(--gold);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .nav-actions a {
@@ -424,6 +448,14 @@ html.is-route-transitioning body[data-view="home"] .door-panel.is-active .projec
 
   .nav-actions {
     gap: 14px;
+  }
+
+  .nav-actions a:nth-child(3) {
+    display: none;
+  }
+
+  .top-nav .locale-switch {
+    gap: 1px;
   }
 
   .nav-actions a {
