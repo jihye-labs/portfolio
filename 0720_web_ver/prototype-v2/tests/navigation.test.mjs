@@ -214,7 +214,7 @@ test("project navigation saves and restores the active category and selection", 
     assert.equal(await page.locator('[data-panel="branding"] [data-panel-trigger]').getAttribute("aria-expanded"), "true");
     assert.equal(await page.locator('[data-panel="branding"] [data-project-list]').getAttribute("hidden"), null);
     assert.equal(await page.locator('[data-panel="branding"] [data-project-row].is-selected').getAttribute("data-slug"), "alldayfit");
-    assert.match(await page.locator('[data-panel="branding"] [data-project-preview]').getAttribute("src"), /alldayfit-main-preview\.png$/);
+    assert.match(await page.locator('[data-panel="branding"] [data-project-preview]').getAttribute("src"), /alldayfit-main-preview\.png(?:\?v=\w+)?$/);
   });
 });
 
@@ -1125,6 +1125,36 @@ test("mobile uses first tap to select and second tap to open", async () => {
     assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
     await row.tap();
     assert.match(page.url(), /#\/work\/benzhi-life/);
+  } finally {
+    await browser.close();
+  }
+});
+
+test("tablet touch opens a category from the panel surface, not only its title", async () => {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 1024, height: 768 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await page.goto(url);
+
+    const tapPoint = await page.locator('[data-panel="ai"]').evaluate((panel) => {
+      const rect = panel.getBoundingClientRect();
+      return {
+        x: Math.round(rect.left + rect.width / 2),
+        y: Math.round(rect.bottom - 96),
+      };
+    });
+    await page.touchscreen.tap(tapPoint.x, tapPoint.y);
+    await page.waitForTimeout(1100);
+
+    assert.equal(await page.locator('[data-split-door]').getAttribute('data-active'), 'ai');
+    assert.equal(await page.locator('[data-panel="ai"] [data-panel-trigger]').getAttribute('aria-expanded'), 'true');
+    assert.equal(await page.locator('[data-panel="ai"] [data-project-list]').getAttribute('hidden'), null);
+    assert.equal(await page.locator('[data-panel="branding"] [data-project-list]').getAttribute('hidden'), '');
+    assert.equal(await page.locator('[data-panel="space"] [data-project-list]').getAttribute('hidden'), '');
   } finally {
     await browser.close();
   }

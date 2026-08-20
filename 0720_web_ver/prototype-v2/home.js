@@ -37,6 +37,10 @@ function createHomeController(root) {
     touchArmedCategory = "";
   }
 
+  function isTouchLikeInput() {
+    return window.matchMedia("(hover: none), (pointer: coarse)").matches;
+  }
+
   function renderRows(panel, category) {
     const list = panel.querySelector("[data-project-list]");
     const trigger = panel.querySelector("[data-panel-trigger]");
@@ -181,6 +185,13 @@ function createHomeController(root) {
     });
     panel.addEventListener("pointerleave", cancelActivation);
     trigger.addEventListener("click", () => activateCategory(category.id));
+    panel.addEventListener("click", (event) => {
+      if (
+        !isTouchLikeInput()
+        || event.target.closest("[data-panel-trigger], [data-project-list]")
+      ) return;
+      activateCategory(category.id);
+    });
     trigger.addEventListener("focus", () => {
       if (!suppressFocusActivation) {
         activateCategory(category.id, "", { immediate: true });
@@ -202,7 +213,7 @@ function createHomeController(root) {
       if (!link) return;
       const row = link.closest("[data-project-row]");
       if (row) {
-        const touchLike = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        const touchLike = isTouchLikeInput();
         const keyboardActivation = event.detail === 0;
         const explicitOpen = Boolean(event.target.closest("[data-open-project]"));
         const armed = (
