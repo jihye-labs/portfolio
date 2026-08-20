@@ -1103,7 +1103,7 @@ test("standard index routes follow the compact contact and home navigation polic
   });
 });
 
-test("mobile uses first tap to select and second tap to open", async () => {
+test("mobile opens a project on the first menu tap after the category opens", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({
@@ -1120,9 +1120,6 @@ test("mobile uses first tap to select and second tap to open", async () => {
     const row = page.locator(
       '[data-panel="branding"] [data-project-row][data-slug="benzhi-life"]',
     );
-    await row.tap();
-    assert.equal(await row.getAttribute("aria-current"), "true");
-    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
     await row.tap();
     assert.match(page.url(), /#\/work\/benzhi-life/);
   } finally {
@@ -1218,44 +1215,6 @@ test("touch arrow is an always-visible direct-open target", async () => {
     assert.equal(new URL(popup.url()).origin, "https://gen-z-glitch.vercel.app");
     assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
     await popup.close();
-  } finally {
-    await browser.close();
-  }
-});
-
-test("touch selection resets when the category or selected row changes", async () => {
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const page = await browser.newPage({
-      viewport: { width: 390, height: 844 },
-      isMobile: true,
-      hasTouch: true,
-    });
-    await page.goto(url);
-    const brandingTrigger = page.locator('[data-panel="branding"] [data-panel-trigger]');
-    const aiTrigger = page.locator('[data-panel="ai"] [data-panel-trigger]');
-    const benzhi = page.locator('[data-panel="branding"] [data-project-row][data-slug="benzhi-life"]');
-    const gallery = page.locator('[data-panel="branding"] [data-project-row][data-slug="gallery-flowers"]');
-
-    await brandingTrigger.tap();
-    await page.waitForTimeout(1100);
-    await benzhi.tap();
-    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
-
-    await aiTrigger.tap();
-    await page.waitForTimeout(1100);
-    await brandingTrigger.tap();
-    await page.waitForTimeout(1100);
-    await benzhi.tap();
-    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
-
-    await gallery.tap();
-    assert.equal(await gallery.getAttribute("aria-current"), "true");
-    await benzhi.tap();
-    assert.equal(await benzhi.getAttribute("aria-current"), "true");
-    assert.equal(await page.evaluate(() => location.hash || "#/"), "#/");
-    await benzhi.tap();
-    await page.waitForURL(/#\/work\/benzhi-life/);
   } finally {
     await browser.close();
   }

@@ -5,8 +5,6 @@ function createHomeController(root) {
   let selectedSlug = "";
   let activationTimer = 0;
   let leaveTimer = 0;
-  let touchArmedSlug = "";
-  let touchArmedCategory = "";
   let suppressFocusActivation = false;
 
   function categoryFor(id) {
@@ -30,11 +28,6 @@ function createHomeController(root) {
       leaveTimer = 0;
       collapseCategory();
     }, 280);
-  }
-
-  function resetTouchArm() {
-    touchArmedSlug = "";
-    touchArmedCategory = "";
   }
 
   function isTouchLikeInput() {
@@ -63,12 +56,11 @@ function createHomeController(root) {
     list.innerHTML = rows;
   }
 
-  function selectProject(panel, slug, options = {}) {
+  function selectProject(panel, slug) {
     const category = categoryFor(panel.dataset.panel);
     const item = category.entries.find((entry) => entry.slug === slug) || category.entries[0];
     const preview = panel.querySelector("[data-project-preview]");
     const image = window.PORTFOLIO_DATA.imageSets[item.previewKey];
-    if (options.preserveTouchArm !== true) resetTouchArm();
     selectedSlug = item.slug;
     preview.src = image.src;
     if (image.srcset) {
@@ -89,7 +81,6 @@ function createHomeController(root) {
   function activateCategory(id, preferredSlug = "", options = {}) {
     cancelActivation();
     cancelLeave();
-    if (activeCategory !== id) resetTouchArm();
     activeCategory = id;
     root.dataset.active = id;
 
@@ -122,7 +113,6 @@ function createHomeController(root) {
     const previousCategory = activeCategory;
     cancelActivation();
     cancelLeave();
-    resetTouchArm();
     activeCategory = "";
     selectedSlug = "";
     root.dataset.active = "";
@@ -213,21 +203,6 @@ function createHomeController(root) {
       if (!link) return;
       const row = link.closest("[data-project-row]");
       if (row) {
-        const touchLike = isTouchLikeInput();
-        const keyboardActivation = event.detail === 0;
-        const explicitOpen = Boolean(event.target.closest("[data-open-project]"));
-        const armed = (
-          touchArmedCategory === category.id
-          && touchArmedSlug === row.dataset.slug
-        );
-        if (touchLike && !keyboardActivation && !explicitOpen && !armed) {
-          event.preventDefault();
-          touchArmedCategory = category.id;
-          touchArmedSlug = row.dataset.slug;
-          selectProject(panel, row.dataset.slug, { preserveTouchArm: true });
-          return;
-        }
-        resetTouchArm();
         selectProject(panel, row.dataset.slug);
       }
       saveHomeState();
